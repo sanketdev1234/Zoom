@@ -7,7 +7,6 @@ const meetingSchema=new Schema({
     Hosted_by:{
     type:Schema.Types.ObjectId,
     ref:"user",
-    required:[true,"Host required"]
     },
     Joining_id:{
         type:String,
@@ -33,5 +32,14 @@ const meetingSchema=new Schema({
     ]
 
 });
+
+meetingSchema.post("findOneAndDelete",async(deleted_meet)=>{
+console.log("this is post deletion for meeting schema");
+console.log("deleted meet is ",deleted_meet);
+if(deleted_meet.Chats.length > 0){
+    const deleted_chat = await chat.deleteMany({_id:{$in:deleted_meet}});
+    console.log("deleted chats are ",deleted_chat);
+}
+})
 const meeting=mongoose.model("meeting",meetingSchema);
 module.exports=meeting;

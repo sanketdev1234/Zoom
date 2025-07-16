@@ -30,10 +30,12 @@ module.exports.userverification=async(req,res,next)=>{
 module.exports.iscorrect_owner=async(req,res,next)=>{
     const id=req.params.meetid;
     const existingowner_id=req.user._id;
+    console.log(existingowner_id);
     try{
     const meet=await meeting.findById(id).populate("Hosted_by");
     const meet_owner_id=meet.Hosted_by._id;
-    if(existingowner_id==meet_owner_id){
+    console.log(meet_owner_id);
+    if(existingowner_id.toString() === meet_owner_id.toString()){
         console.log("existing user is owner");
         next();
     }

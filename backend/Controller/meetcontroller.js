@@ -5,14 +5,67 @@ const chat=require("../model/chat");
 const mongoose=require("mongoose");
 
 module.exports.getallmeeting=async(req,res)=>{
-    res.send("get all meetting")
+    try{
+        console.log(req.user._id);
+        const curr_user=req.user._id;
+        const all_meetings=await meeting.find({Hosted_by:curr_user});
+        console.log(all_meetings);
+        res.send(`get all meetting ${all_meetings}`);
+    }
+    catch(err){
+    console.log(err);
+    res.send(err);
+    }
+    
 };
 module.exports.create_new_meet=async(req,res)=>{
-    res.send("add new meet");
+    try{
+    console.log(req.user._id);
+    const Hosted_by=req.user._id;
+    const Joining_id=req.body.Joining_id;
+    const StartAt=req.body.StartAt;
+    const EndAt=req.body.EndAt;
+    const curr_meet=await meeting.insertOne({Joining_id:Joining_id,StartAt:StartAt,EndAt:EndAt});
+    console.log(curr_meet);
+    // add the host 
+    curr_meet.Hosted_by=Hosted_by;
+    curr_meet.Participants=Hosted_by;// add remaining participants later
+    await curr_meet.save();
+    res.send(`added  new meet ${curr_meet}`);
+    }
+    catch(err){
+        console.log(err);
+        res.send(err);
+    }
+    
 };
 module.exports.getmeetdetail=async(req,res)=>{
-    res.send("get detail of meet");
+    try{
+    const meetid=req.params.meetid;
+    console.log(req.user._id);
+    const curr_user=req.user._id;
+    const detail_meet=await meeting.findById(meetid).populate({path:"Chats" , populate:{
+        path:"Author",
+            },}).populate("Participants").populate("Hosted_by");
+    console.log(detail_meet);
+    res.send(`get detail of meet ${detail_meet}`);
+    }
+    catch(err){
+        console.log(err);
+        res.send(err);
+    }
+    
 };
 module.exports.deletemeet=async(req,res)=>{
-    res.send("delete it")
+    try{
+    const meetid=req.params.meetid;
+    const deleted_meet=await meeting.findByIdAndDelete(meetid);
+    console.log("deleted_meet => ",deleted_meet);
+    res.send(`meet deleted ${deleted_meet}`);
+    }
+    catch(err){
+        console.log(err);
+        res.send(err);
+    }
+
 };
