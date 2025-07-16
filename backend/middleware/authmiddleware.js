@@ -3,7 +3,7 @@ const user=require("../model/user");
 const jwt=require("jsonwebtoken");
 const mongoose=require("mongoose");
 const meeting=require("../model/meeting");
-
+const chat=require("../model/chat");
 module.exports.userverification=async(req,res,next)=>{
     const token = req.cookies.token;
 
@@ -23,7 +23,7 @@ module.exports.userverification=async(req,res,next)=>{
     }
     }
     catch(err){
-    res.send(err);
+    return res.send(err);
     }
 }
 
@@ -40,12 +40,39 @@ module.exports.iscorrect_owner=async(req,res,next)=>{
         next();
     }
     else {
-        res.status(401).send("unauthorized");
+        return res.status(401).send("unauthorized");
     }
     }
     catch(err){
         console.log(err);
-        res.send(err);
+        return res.send(err);
     }
     
+}
+
+module.exports.isPossible=async(req,res,next)=>{
+try{
+const meetid=req.params.meetid;
+const chatid=req.params.chatid;
+
+const curr_meet=await meeting.findById(meetid);
+
+if(curr_meet.isEnded){
+    return res.send("chat modification only possible during meeting time!");
+}
+
+const curr_chat=await chat.findById(chatid);
+console.log("current chat to be processing is ",curr_chat);
+const chatAuthor=curr_chat.Author;
+console.log(chatAuthor);
+console.log(req.user._id);
+if(chatAuthor.toString()!=req.user._id.toString()){
+return res.send("chat moification can only only be done by Author of chat ")
+}
+next();
+}
+catch(err){
+console.log(err);
+return res.send(err);
+}
 }

@@ -7,7 +7,7 @@ const chatSchema=new Schema({
     Author:{
         type:Schema.Types.ObjectId,
         ref:"user",
-        required:true
+
     },
     Content:{
         type:String,
@@ -16,7 +16,7 @@ const chatSchema=new Schema({
     Meet:{
         type:Schema.Types.ObjectId,
         ref:"meeting",
-        required:true
+
     }
 });
 

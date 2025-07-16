@@ -29,7 +29,11 @@ const meetingSchema=new Schema({
             type:Schema.Types.ObjectId,
             ref:"chat"
         }
-    ]
+    ],
+    isEnded:{
+        type:Boolean,
+        default:false
+    }
 
 });
 
