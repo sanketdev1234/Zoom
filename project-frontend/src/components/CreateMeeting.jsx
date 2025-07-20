@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Calendar, Key, Clock } from 'lucide-react';
+import backgroundImg from '../assets/background.jpg';
 
 function generateMeetingId() {
   // Generates a random 8-character alphanumeric string
@@ -63,7 +64,13 @@ const CreateMeeting = () => {
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', padding: '2rem' }}>
+    <div className="d-flex align-items-center justify-content-center" style={{ 
+      minHeight: '100vh',
+      backgroundImage: `url(${backgroundImg})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    }}>
       <ToastContainer position="top-right" autoClose={3000} />
       <form onSubmit={handleSubmit} className="shadow-lg" style={{
         background: 'rgba(255,255,255,0.95)',

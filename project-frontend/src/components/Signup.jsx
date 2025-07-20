@@ -4,6 +4,7 @@ import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import backgroundImg from '../assets/background.jpg';
 
 function Signup() {
   const navigate = useNavigate();
@@ -139,9 +140,14 @@ function Signup() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      width: '100%'
+      width: '100%',
+      minHeight: '100vh',
+      backgroundImage: `url(${backgroundImg})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
     }}>
-         <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer position="top-right" autoClose={3000} />
       <div className="signup-card" style={{
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',

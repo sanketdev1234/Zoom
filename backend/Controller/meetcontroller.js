@@ -8,9 +8,14 @@ module.exports.getallmeeting=async(req,res)=>{
     try{
         console.log(req.user._id);
         const curr_user=req.user._id;
-        const all_meetings=await meeting.find({Hosted_by:curr_user});
+        const all_meetings=await meeting.find({
+            $or: [
+                { Hosted_by: curr_user },
+                { Participants: { $in: [curr_user] } }
+            ]
+        }).populate("Hosted_by");
         console.log(all_meetings);
-        res.send(`get all meetting ${all_meetings}`);
+        res.send(all_meetings);
     }
     catch(err){
     console.log(err);
