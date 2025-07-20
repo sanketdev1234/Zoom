@@ -367,7 +367,9 @@ const navLinks = [
                 Logout
               </button>
               <button className="btn btn-custom btn-call">
-                <span>Start Meeting</span>
+                <Link to="/newmeet" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
+                  Create New Meet
+                </Link>
               </button>
             </div>
           ) : (
@@ -490,8 +492,9 @@ const navLinks = [
                   Log out
                 </button>
                 <button className="btn btn-custom btn-call">
-                  <i className="bi bi-telephone me-2"></i>
-                  <span>Start Meeting</span>
+                <Link to="/newmeet" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
+                  Create New Meet
+                </Link>
                 </button>
               </div>):(<div className="d-grid gap-3">
                 <Link to="/signup" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
