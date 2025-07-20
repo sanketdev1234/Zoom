@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Video, MessageCircle, Shield, Calendar, Smartphone, Clipboard } from 'lucide-react';
 import VideoCallingNavbar from "./ResizableNavbar";
+import axios  from 'axios';
+import {Link} from "react-router-dom";
 
 const SanketMeetLanding = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -12,6 +14,22 @@ const SanketMeetLanding = () => {
   const trailUpdateRef = useRef(0);
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
+const [user,setuser]=useState("");
+
+useEffect(()=>{
+  async function checkuser(){
+  await axios.get("/auth/authstatus",{withCredentials: true}).then((response)=>{
+  console.log("the response is ", response.data);
+  setuser(response.data.display_name);
+  console.log(user);
+
+  }).catch((err)=>{
+    console.log("the error is ",err);
+    Navigate("/pagenotfound")
+  });
+  }
+  checkuser();
+},[user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -637,7 +655,7 @@ const SanketMeetLanding = () => {
                   seamless collaboration, and enterprise-grade security.
                 </p>
                 <button className="shimmer-button d-inline-flex align-items-center">
-                  Visit Dashboard
+                  {user?(<Link className='text-decoration-none text-white' to="/dashboard" >Visit Dashboard</Link>):(<Link className='text-decoration-none text-white' to="/signup">Visit Dashboard</Link>)}
                   <span className="ms-2">→</span>
                 </button>
               </div>

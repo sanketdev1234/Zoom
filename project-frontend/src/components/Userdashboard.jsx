@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import axios from "axios"
-const UserDashboard = () => {
+import axios from "axios";
+import { ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
+
+const UserDashboard = () => {
+   const Navigate=useNavigate();
   const [meetings, setmeetings] = useState([  ]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isdelete,setisdelete]=useState(false);
   const [starsData, setStarsData] = useState({
     small: [],
     medium: [],
@@ -25,7 +32,7 @@ const UserDashboard = () => {
       }
     }
     getAllMeetings();
-  }, []);
+  }, [isdelete]);
 
   // Function to generate random box-shadows for stars
   const generateStars = (count) => {
@@ -48,6 +55,23 @@ const UserDashboard = () => {
     });
   }, []);
 
+  const handleDelete=async (meetid)=>{
+    try{
+    const response=await axios.delete(`/meeting/${meetid}/delete`,{withCredentials:true});
+    console.log(response);
+    if(response.status==401){
+      toast.error(`${response.data} ! only host can delete the meeting`);
+    }
+    else {
+      toast.success("saved meeting history deleted");
+      setisdelete(true);
+    }
+    }
+    catch(err){
+      console.log("the error is",err);
+      Navigate("/pagenotfound")
+    }
+  }
   // Convert stars array to box-shadow string
   const createBoxShadow = (stars) => {
     return stars.map(star => `${star.x}px ${star.y}px #FFF`).join(', ');
@@ -84,7 +108,7 @@ const UserDashboard = () => {
     container: {
       height: '100vh',
       background: 'radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%)',
-      overflow: 'hidden',
+      overflow: "auto",
       position: 'relative',
       fontFamily: "'Lato', sans-serif"
     },
@@ -452,6 +476,46 @@ const UserDashboard = () => {
                               </div>
                             </div>
                           </div>
+                          {/* Action Buttons */}
+                          <div style={{
+                            position: 'absolute',
+                            right: 20,
+                            bottom: 20,
+                            display: 'flex',
+                            gap: '10px',
+                            zIndex: 3
+                          }}>
+                            <button
+                              onClick={() => handleView(meeting._id,meeting.Hosted_by._id)}
+                              style={{
+                                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: 8,
+                                padding: '8px 16px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(99,102,241,0.15)'
+                              }}
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleDelete(meeting._id)}
+                              style={{
+                                background: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: 8,
+                                padding: '8px 16px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(239,68,68,0.15)'
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -462,6 +526,7 @@ const UserDashboard = () => {
           )}
         </div>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };
