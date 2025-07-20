@@ -36,7 +36,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname)));
 
-const io=SocketController(server);
+// const io=SocketController(server);
 
 main()
 .then(() => {
@@ -69,10 +69,7 @@ app.use("/meeting",meetingroute);
 app.use("/meeting/:meetid/chat",chatroute);
 
 
-app.all("/*s" , (req , res , next)=>{
-    next(new ExpressError (404 , "wrong url"));
-  });
-  
+
   // it is for the express error
   app.use((err , req, res ,next )=>{
   let {statusCode=500 , message="something went wrong!"}=err;

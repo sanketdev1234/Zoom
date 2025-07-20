@@ -91,8 +91,11 @@ module.exports.userstatus = (req, res) => {
         res.send("token not match")
       } else {
         const User = await user.findById(data.id)
-        if (User)  res.send(User);
-        else  res.send("not find")
+        if (User) {
+        console.log(User);
+        res.send(User);
+        } 
+        else  res.send("user not found")
       }
     })
   }
