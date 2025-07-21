@@ -4,7 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-
+import {Link} from "react-router-dom";
 
 const UserDashboard = () => {
    const Navigate=useNavigate();
@@ -486,7 +486,7 @@ const UserDashboard = () => {
                             zIndex: 3
                           }}>
                             <button
-                              onClick={() => handleView(meeting._id,meeting.Hosted_by._id)}
+                              
                               style={{
                                 background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                                 color: 'white',
@@ -498,7 +498,7 @@ const UserDashboard = () => {
                                 boxShadow: '0 2px 8px rgba(99,102,241,0.15)'
                               }}
                             >
-                              View
+                              <Link className='text-decoration-none text-white' to={`/meet/${meeting._id}/detail`}> get detail </Link>
                             </button>
                             <button
                               onClick={() => handleDelete(meeting._id)}

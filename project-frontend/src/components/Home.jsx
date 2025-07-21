@@ -37,8 +37,7 @@ function PageWrapper({ children }) {
           <Route path="/newmeet" element={<PageWrapper><CreateMeeting/></PageWrapper>} />
           <Route path="/signup" element={<PageWrapper><Signup /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
-          <Route path="/meetdetail" element={<PageWrapper><Showmeetdetail /></PageWrapper>} />
-          <Route path="/chatdetail" element={<PageWrapper><Showchatdetail /></PageWrapper>} />
+          <Route path="/meet/:id/detail" element={<PageWrapper><Showmeetdetail /></PageWrapper>} />
           <Route path="/socketchat" element={<PageWrapper><ScoketChat /></PageWrapper>} />
           <Route path="/contact" element={<PageWrapper><Contactsanket /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
