@@ -53,7 +53,7 @@ module.exports.getmeetdetail=async(req,res)=>{
         path:"Author",
             },}).populate("Participants").populate("Hosted_by");
     console.log(detail_meet);
-    res.send(`get detail of meet ${detail_meet}`);
+    res.send(detail_meet);
     }
     catch(err){
         console.log(err);
