@@ -23,6 +23,19 @@ module.exports.getallmeeting=async(req,res)=>{
     }
     
 };
+module.exports.joinmeet=async(req,res)=>{
+    const joinid=req.params.joinid;
+    const curr_meet=await meeting.findOne({Joining_id:joinid}).populate("Hosted_by");
+    console.log("user id ",req.user._id);
+    console.log("curr meet is",curr_meet);
+    console.log("Host is",curr_meet.Hosted_by._id)
+    if(curr_meet.Hosted_by._id.toString()!=req.user._id.toString()){
+    curr_meet.Participants=req.user._id;
+    await curr_meet.save();
+    }
+    res.send(curr_meet);
+}
+
 module.exports.create_new_meet=async(req,res)=>{
     try{
     console.log(req.user._id);

@@ -1,19 +1,42 @@
 import React from "react";
 import {useState , useEffect , useRef} from "react";
 import {io} from "socket.io-client";
-
+import axios from "axios"
+import { useParams } from "react-router-dom";
 const socket=io("http://localhost:8080",{withCredentials:true});
 
-function SocketChat({userid,meetid}){
+function SocketChat(){
+const [user,setuser]=useState({});
+const {meetid}=useParams();
+const [displayname,setdisplayname]=useState("");
+
+
 const [Messages,setMessages]=useState([]);
 const [Notification,setNotification]=useState("");
 const [Input,setInput]=useState("");
 const messagesEndRef=useRef(null);
 
 useEffect(()=>{
+  async function checkuser(){
+  await axios.get("/auth/authstatus",{withCredentials: true}).then((response)=>{
+  console.log("the response is ", response.data);
+  setuser(response.data);
+  setdisplayname(response.data.display_name)
+  console.log(user);
+
+  }).catch((err)=>{
+    console.log("the error is ",err);
+    Navigate("/pagenotfound")
+  });
+  }
+  checkuser();
+},[displayname]);
+
+
+useEffect(()=>{
 
     // Join the meeting room
-    socket.emit("Join Meeting",{userid,meetid});
+    socket.emit("Join Meeting",{displayname,meetid});
     
     // Listen for chat messages
     socket.on("Chat Msg",(msg)=>{
@@ -30,17 +53,17 @@ useEffect(()=>{
 
     // Rejoin rooms on reconnect
     socket.on("connect",()=>{
-    socket.emit("Rejoin Meet",({userid}));
+    socket.emit("Rejoin Meet",({displayname}));
     });
 
     // Cleanup on unmount(Leave)
     return ()=>{
-        socket.emit("Leave Meet",{userid,meetid});
+        socket.emit("Leave Meet",{displayname,meetid});
         socket.off("New Notification");
         socket.off("Chat Msg");
     };
 
-},[userid,meetid]);
+},[displayname,meetid]);
 
 useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,7 +72,7 @@ useEffect(() => {
   const sendMessage=(e)=>{
     e.preventDefault();
     if (Input.trim()) {
-        socket.emit("Chat Msg", { meetid, userid, content: Input });
+        socket.emit("Chat Msg", { meetid, displayname, content: Input });
         setInput("");
       }
   };
@@ -66,6 +89,7 @@ useEffect(() => {
         ))}
         <div ref={messagesEndRef} />
       </div>
+
       <form onSubmit={sendMessage}>
         <input
           value={Input}

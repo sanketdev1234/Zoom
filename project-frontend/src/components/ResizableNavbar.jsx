@@ -366,11 +366,19 @@ const navLinks = [
                 <i className="bi bi-person me-2"></i>
                 Logout
               </button>
+
               <button className="btn btn-custom btn-call">
                 <Link to="/newmeet" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
                   Create New Meet
                 </Link>
               </button>
+              
+              <button className="btn btn-custom btn-call">
+                <Link to="/joinmeet" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
+                  Join Meet
+                </Link>
+                </button>
+                
             </div>
           ) : (
             <div className="d-flex gap-3 align-items-center">
@@ -491,11 +499,18 @@ const navLinks = [
                   <i className="bi bi-person me-2"></i>
                   Log out
                 </button>
-                <button className="btn btn-custom btn-call">
+                <button className="btn btn-custom btn-call me-2">
                 <Link to="/newmeet" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
                   Create New Meet
                 </Link>
                 </button>
+
+                <button className="btn btn-custom btn-call">
+                <Link to="/joinmeet" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
+                  Join Meet
+                </Link>
+                </button>
+
               </div>):(<div className="d-grid gap-3">
                 <Link to="/signup" className="btn btn-custom btn-login" style={{ textDecoration: 'none' }}>
                   Sign Up

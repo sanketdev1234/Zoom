@@ -8,6 +8,7 @@ import Showmeetdetail from "./Showmeetdetail"
 import Userdashboard from "./Userdashboard"
 import ScoketChat from "./ScoketChat"
 import Contactsanket from "./Contactsanket"
+import Joinmeeting from "./Joinmeet";
 import NotFound from "./Notfound"
 
 import LandingPage from "./Landingpage";
@@ -35,10 +36,11 @@ function PageWrapper({ children }) {
         <Route path="/landingpage" element={<PageWrapper><LandingPage/></PageWrapper>} />
           <Route path="/dashboard" element={<PageWrapper><Userdashboard/></PageWrapper>} />
           <Route path="/newmeet" element={<PageWrapper><CreateMeeting/></PageWrapper>} />
+          <Route path="/joinmeet" element={<PageWrapper><Joinmeeting/></PageWrapper>} />
           <Route path="/signup" element={<PageWrapper><Signup /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
           <Route path="/meet/:id/detail" element={<PageWrapper><Showmeetdetail /></PageWrapper>} />
-          <Route path="/socketchat" element={<PageWrapper><ScoketChat /></PageWrapper>} />
+          <Route path="/ongoingmeet/:meetid/:joinid" element={<PageWrapper><ScoketChat /></PageWrapper>} />
           <Route path="/contact" element={<PageWrapper><Contactsanket /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
