@@ -1,47 +1,18 @@
 // src/components/stackCards.js
-document.addEventListener('DOMContentLoaded', () => {
-    let lastScrollTop = 0;
-  
-    document.addEventListener('scroll', () => {
-      const container = document.querySelector('.stack-cards-container');
-      const cards = document.querySelectorAll('.stack-cards__item');
-      const containerRect = container.getBoundingClientRect();
-      const windowHeight = window.innerHeight + 300;
-      const scrollPosition = window.scrollY;
-      const scrollDown = scrollPosition > lastScrollTop;
-      lastScrollTop = scrollPosition <= 0 ? 0 : scrollPosition;
-  
-      const progress = Math.max(
-        0,
-        (scrollPosition - containerRect.top + windowHeight) / (windowHeight * 2)
-      );
-  
-      // Apply transformations in reverse order
-      const numCards = cards.length;
-      for (let index = numCards - 1; index >= 0; index--) {
-        const card = cards[index];
-        if (index === numCards - 1) {
-          // Last card – slides faster
-          if (scrollPosition > containerRect.top - windowHeight * 0.2) {
-            card.classList.add('slide-up');
-          } else {
-            card.classList.remove('slide-up');
-          }
-        } else {
-          if (scrollDown) {
-            if (index >= numCards - progress && index !== numCards - 1) {
-              card.classList.add('slide-up');
-            } else {
-              card.classList.remove('slide-up');
-            }
-          } else {
-            if (index > numCards - progress - 1 && index !== numCards - 1) {
-              card.classList.add('slide-up');
-            } else {
-              card.classList.remove('slide-up');
-            }
-          }
-        }
-      }
-    });
+(function () {
+  const cards = [...document.querySelectorAll('.stack-cards__item')];
+  const hidden = [];               // stack of hidden cards
+
+  document.addEventListener('click', e => {
+    const card = e.target.closest('.stack-cards__item');
+
+    if (card && !card.classList.contains('slide-up')) {
+      // click on a visible card → hide it
+      card.classList.add('slide-up');
+      hidden.push(card);
+    } else if (!card && hidden.length) {
+      // click outside → restore last hidden
+      hidden.pop().classList.remove('slide-up');
+    }
   });
+})();

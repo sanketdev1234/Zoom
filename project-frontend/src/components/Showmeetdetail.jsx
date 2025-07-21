@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useMemo} from 'react';
 import { useParams } from 'react-router-dom';
 import axios from "axios"
 import './stackCards.css';   // contains the CSS you pasted
@@ -8,82 +8,55 @@ export default function ShowMeetDetail() {
   const {id}=useParams();
   console.log(id);
   const [meet,setmeet]=useState({});
-  
+  const [stackData,setstackData]=useState([]);
+
   useEffect(() => {
     async function getmeet(){
+      try{
     const response=await axios.get(`/meeting/${id}/detail`,{withCredentials:true});
-    console.log(response.data);
+    console.log("the response ie meet is ",response.data);
     setmeet(response.data);
     console.log("meet is",meet);
+        const participants = response.data.Participants ?? [];
+    const chats= response.data.Chats?? [];
+    setstackData( [
+      ...participants.map(p => ({
+        title: p.display_name,
+        text:  `Participant fullname and email: ${p.full_name}, ${p.email}`,
+        type:  p.gender,
+      })),
+      ...(chats?.map(c => ({
+        title: `${c.Author.display_name} says:`,
+        text:  c.Content,
+        type:  'chat',
+      })) ?? []),
+    ]);
+      }
+      catch(err){
+        console.log("the error is ",err)
+      }
     } getmeet();
   }, []);
 
-  const Participants=meet.Participants;
-  console.log("the partiipants array is ",Participants);
-  const Chats=meet.Chats;
-  console.log("the meet chats are:",Chats);
-  const cards = [
-    {
-      title: 'Knight Forks:',
-      text: 'Knights are unique in their movement pattern, capable of hopping over other pieces in a way that bishops and rooks cannot. This ability makes them particularly effective at executing fork tactics, where a single knight simultaneously attacks two or more enemy pieces.',
-      counter: '6/6',
-    },
-    {
-      title: 'Zwischenzug (Intermezzo):',
-      text: 'It refers to unexpected intermediate moves that disrupt the natural flow of a position. These surprising intermezzos can change the evaluation of a position dramatically, catching opponents off guard and forcing them to recalculate their plans on the spot.',
-      counter: '5/6',
-    },
-    {
-      title: 'Pinning and Unpinning:',
-      text: 'Pins occur when a piece is immobilized due to the threat of a more valuable piece behind it. Mastering the art of pinning and unpinning involves using pieces like bishops and rooks to restrict the movement of enemy pieces, potentially winning material or creating tactical opportunities.',
-      counter: '4/6',
-    },
-    {
-      title: 'Pawn Structures and Pawn Chains:',
-      text: 'Pawn structures play a crucial role in determining the strategic nature of a position. Pawn chains, where pawns support each other in a diagonal line, can control key squares and restrict the opponent\'s pieces.',
-      counter: '3/6',
-    },
-    {
-      title: 'Underpromotion:',
-      text: 'It occurs when a pawn reaches the eighth rank and is promoted to a piece other than a queen, typically a knight, bishop, or rook.',
-      counter: '2/6',
-    },
-    {
-      title: 'Overloading:',
-      text: 'Overloading refers to the tactic of placing excessive pressure on a defending piece, forcing it to perform multiple defensive tasks simultaneously. By overwhelming a single piece with multiple threats, players can create opportunities to exploit weaknesses elsewhere on the board.',
-      counter: '1/6',
-    },
-    {
-      title: 'Knight Forks:',
-      text: 'Knights are unique in their movement pattern, capable of hopping over other pieces in a way that bishops and rooks cannot. This ability makes them particularly effective at executing fork tactics, where a single knight simultaneously attacks two or more enemy pieces.',
-      counter: '6/6',
-    },
-    {
-      title: 'Zwischenzug (Intermezzo):',
-      text: 'It refers to unexpected intermediate moves that disrupt the natural flow of a position. These surprising intermezzos can change the evaluation of a position dramatically, catching opponents off guard and forcing them to recalculate their plans on the spot.',
-      counter: '5/6',
-    },
-    {
-      title: 'Pinning and Unpinning:',
-      text: 'Pins occur when a piece is immobilized due to the threat of a more valuable piece behind it. Mastering the art of pinning and unpinning involves using pieces like bishops and rooks to restrict the movement of enemy pieces, potentially winning material or creating tactical opportunities.',
-      counter: '4/6',
-    },
-    {
-      title: 'Pawn Structures and Pawn Chains:',
-      text: 'Pawn structures play a crucial role in determining the strategic nature of a position. Pawn chains, where pawns support each other in a diagonal line, can control key squares and restrict the opponent\'s pieces.',
-      counter: '3/6',
-    },
-    {
-      title: 'Underpromotion:',
-      text: 'It occurs when a pawn reaches the eighth rank and is promoted to a piece other than a queen, typically a knight, bishop, or rook.',
-      counter: '2/6',
-    },
-    {
-      title: 'Overloading:',
-      text: 'Overloading refers to the tactic of placing excessive pressure on a defending piece, forcing it to perform multiple defensive tasks simultaneously. By overwhelming a single piece with multiple threats, players can create opportunities to exploit weaknesses elsewhere on the board.',
-      counter: '1/6',
-    },
-  ];
+
+  /* compute stack cards only when meet is ready */
+  // const stackData = useMemo(() => {
+  //   const participants = meet.Participants ?? [];
+  //   const chats        = meet.Chats        ?? [];
+
+  //   return [
+  //     ...participants.map(p => ({
+  //       title: p.display_name,
+  //       text:  `Participant fullname and email is: ${p.full_name}, ${p.email}`,
+  //       type:  p.gender,
+  //     })),
+  //     ...chats.map(c => ({
+  //       title: `${c.Author.display_name} says:`,
+  //       text:  c.Content,
+  //       type:  'chat',
+  //     })),
+  //   ];
+  // }, [meet]);
 
   return (
     <>
@@ -128,12 +101,13 @@ export default function ShowMeetDetail() {
         </div>
 
         <div className="stack-cards">
-          {cards.map((c, idx) => (
+        {stackData.map((item, idx) => (
             <div key={idx} className="stack-cards__item">
               <div className="inner">
-                <h3 className="h5 mb-2">{c.title}</h3>
-                <p className="mb-0 small">{c.text}</p>
-                <div className="counter">{idx+1}</div>
+                <h3 className="h5 mb-2">{item.title}</h3>
+                <p className="mb-0 small">{item.text}</p>
+                <p className="mb-0 small">{item.type}</p>
+                <div className="counter">{idx + 1}</div>
               </div>
               <div className="shadow" />
             </div>

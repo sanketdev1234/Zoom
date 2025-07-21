@@ -90,8 +90,8 @@ a-rays .a__scene path {
   border: 1px solid black;
   border-radius: 1.5rem;
   transform: translate(-50%, -50%);
-  transition: transform 1.3s cubic-bezier(0.9, -0.2, 0.1, 1.2), 
-              opacity 1.3s cubic-bezier(1, 0, 0, 1) 0s;
+  transition: transform 0.8s cubic-bezier(0.9, -0.2, 0.1, 1.2), 
+              opacity 0.8s cubic-bezier(1, 0, 0, 1) 0s;
   will-change: opacity, transform;
   color: white;
 }
@@ -145,7 +145,8 @@ a-rays .a__scene path {
 }
 
 .stack-cards__item.slide-up {
-  transform: translate(-50%, -260%); /* Move up out of view */
+  transform: translate(-50%, -250%);   /* moves up & fades */
+  opacity: 0.5;
 }
 
 .flex {
