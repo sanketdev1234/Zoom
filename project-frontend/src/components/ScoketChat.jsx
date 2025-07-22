@@ -7,7 +7,7 @@ const socket=io("http://localhost:8080",{withCredentials:true});
 
 function SocketChat(){
 const [user,setuser]=useState({});
-const {meetid}=useParams();
+const {meetid,joinid}=useParams();
 const [displayname,setdisplayname]=useState("");
 
 
@@ -36,7 +36,7 @@ useEffect(()=>{
 useEffect(()=>{
 
     // Join the meeting room
-    socket.emit("Join Meeting",{displayname,meetid});
+    socket.emit("Join Meeting",{displayname,joinid});
     
     // Listen for chat messages
     socket.on("Chat Msg",(msg)=>{
@@ -45,7 +45,7 @@ useEffect(()=>{
     
     // Listen for notifications
     socket.on("New Notification",(data)=>{
-        setNotification(data.notification);
+        setNotification(data.notification+"from"+data.from);
         setTimeout(() => {
             setNotification("");
         }, 2000);
@@ -58,12 +58,12 @@ useEffect(()=>{
 
     // Cleanup on unmount(Leave)
     return ()=>{
-        socket.emit("Leave Meet",{displayname,meetid});
+        socket.emit("Leave Meet",{displayname,joinid});
         socket.off("New Notification");
         socket.off("Chat Msg");
     };
 
-},[displayname,meetid]);
+},[displayname,joinid]);
 
 useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,7 +72,7 @@ useEffect(() => {
   const sendMessage=(e)=>{
     e.preventDefault();
     if (Input.trim()) {
-        socket.emit("Chat Msg", { meetid, displayname, content: Input });
+        socket.emit("Chat Msg", { joinid, displayname, content: Input });
         setInput("");
       }
   };
