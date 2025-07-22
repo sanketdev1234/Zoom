@@ -34,13 +34,7 @@ useEffect(()=>{
   checkuser();
 },[displayname]);
 
-useEffect(()=>{
-  async function checkonlineusers(){
-    const response=await axios.get(`/meeting/${meetid}/detail`,{withCredentials: true});
-    setonlineUsers(new Set(response.data.Participants.map(user=>user.display_name)));
-  }
-  checkonlineusers();
-},[meetid]);
+
 
 
 useEffect(()=>{
@@ -52,11 +46,17 @@ useEffect(()=>{
     setMessages((prev)=>[...prev,msg]);
     });
     
+    //Listen for onlineUsers
+    socket.on("Online Users",(data)=>{
+      console.log("the data is",data);
+      setonlineUsers(new Set(data));
+    });
 
     // Listen for notifications
     socket.on("New Notification",(data)=>{
         toast.success(data.notification+"from"+data.from);
     });
+
 
     // Rejoin rooms on reconnect
     socket.on("connect",()=>{
@@ -68,14 +68,10 @@ useEffect(()=>{
         socket.emit("Leave Meet",{displayname,joinid});
         socket.off("New Notification");
         socket.off("Chat Msg");
-        setonlineUsers((prev)=>{
-          const newset=new Set(prev);
-          newset.delete(displayname);
-          return newset;
-        });
+        setonlineUsers(new Set());
     };
 
-},[displayname,joinid]);
+},[displayname,joinid,onlineUsers.length]);
 
 useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const cors=require("cors");
 const { set } = require('mongoose');
 const userrooms=new Map();
+const userset=new Set();
 module.exports.SocketController = (server) => {
 const io = new Server(server,{
     cors:{
@@ -31,15 +32,18 @@ io.on("connection",(socket)=>{
         socket.join(joinid);
         if(!userrooms.has(displayname))userrooms.set(displayname,new Set())
             userrooms.get(displayname).add(joinid);
+        userset.add(displayname);
         console.log(`user ${displayname} joined the meeting of joining id ${joinid}`)
-        
+        io.to(joinid).emit('Online Users',Array.from(userset));
     });
     
     //listen the request to leave the meeting room
     socket.on('Leave Meet',({displayname,joinid})=>{
         socket.leave(joinid);
         if (userrooms.has(displayname)) userrooms.get(displayname).delete(joinid);
+        userset.delete(displayname);
         console.log(`User ${displayname} left meeting ${joinid}`);
+        io.to(joinid).emit('Online Users',Array.from(userset));
     });
     
     //disconection event 
