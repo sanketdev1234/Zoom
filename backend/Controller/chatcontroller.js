@@ -16,7 +16,7 @@ module.exports.create_new_chat=async(req,res)=>{
     await new_chat.save();
     curr_meet.Chats.push(new_chat);
     await curr_meet.save();
-    res.send(`the new chat is ${new_chat}`)
+    res.send(new_chat);
     }
     catch(err){
     console.log(err);
