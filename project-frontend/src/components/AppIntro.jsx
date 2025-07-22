@@ -188,12 +188,14 @@ function AppIntro() {
       >
         {/* Background Video */}
         <video
+        
           className="background-video"
+          controls={true}
           autoPlay
           loop
           playsInline
         >
-          <source src="/1013099.mp4" type="video/mp4" />
+          <source src="../src/assets/1013099.mp4" type="video/mp4" />
           Sorry, your browser does not support embedded videos.
         </video>
         

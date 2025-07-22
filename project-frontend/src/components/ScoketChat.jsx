@@ -69,10 +69,17 @@ useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [Messages]);
 
-  const sendMessage=(e)=>{
+  const sendMessage=async (e)=>{
     e.preventDefault();
     if (Input.trim()) {
-        socket.emit("Chat Msg", { joinid, displayname, content: Input });
+        const response=await axios.post(`/meeting/${meetid}/chat/new`,{Content:Input}, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        });
+        console.log("the response is sending message",response.data);
+        socket.emit("Chat Msg", { meetid,joinid, displayname, content: Input });
         setInput("");
       }
   };
