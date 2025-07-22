@@ -30,7 +30,7 @@ module.exports.joinmeet=async(req,res)=>{
     console.log("curr meet is",curr_meet);
     console.log("Host is",curr_meet.Hosted_by._id)
     if(curr_meet.Hosted_by._id.toString()!=req.user._id.toString()){
-    curr_meet.Participants=req.user._id;
+    curr_meet.Participants.push(req.user._id);
     await curr_meet.save();
     }
     res.send(curr_meet);

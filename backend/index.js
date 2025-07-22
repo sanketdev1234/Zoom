@@ -36,7 +36,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname)));
 
-// const io=SocketController(server);
+const io=SocketController(server);
 
 main()
 .then(() => {
