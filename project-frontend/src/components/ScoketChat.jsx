@@ -73,6 +73,13 @@ useEffect(()=>{
       });
     });
     
+    //Listen for deleted messages
+    socket.on("Delete Msg",(msg)=>{
+      console.log("the message is deleted",msg);
+      setMessages((prev)=>{
+        return prev.filter((message)=>message.chatid!==msg.chatid);
+      });
+    });
 
     // Rejoin rooms on reconnect
     socket.on("connect",()=>{
@@ -144,8 +151,9 @@ useEffect(() => {
       withCredentials: true
     });
     console.log("the response is deleting message",response.data);
-    const updatedMessage=Messages.filter((message)=>message.chatid!==chatid);
-    setMessages(updatedMessage);
+  
+    socket.emit("Delete Msg", { meetid,joinid, chatid,displayname, time:new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })});
+
     }
     catch(err){
       console.log("the error is deleting message",err);

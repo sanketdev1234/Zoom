@@ -32,6 +32,11 @@ io.on("connection",(socket)=>{
         io.to(msg.joinid).emit('Edit Msg',msg);
     });
     
+    //Listen for deleted messages
+    socket.on('Delete Msg',(msg)=>{
+        io.to(msg.joinid).emit('Delete Msg',msg);
+    });
+    
     //listen the request to join meeting room
     socket.on('Join Meeting',({displayname,joinid})=>{
         socket.join(joinid);
