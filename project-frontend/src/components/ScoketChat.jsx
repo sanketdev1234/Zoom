@@ -59,6 +59,18 @@ useEffect(()=>{
         toast.success(data.notification+"from"+data.from);
     });
 
+    // Listen for edited messages
+    socket.on("Edit Msg",(msg)=>{
+      console.log("the message is edited",msg);
+      const updatedMessage=Messages.map((message)=>{
+        if(message.chatid===msg.chatid){
+          return {...message,content:msg.content};
+        }
+        return message;
+      });
+      setMessages(updatedMessage);
+    });
+    
 
     // Rejoin rooms on reconnect
     socket.on("connect",()=>{
@@ -70,6 +82,7 @@ useEffect(()=>{
         socket.emit("Leave Meet",{displayname,joinid});
         socket.off("New Notification");
         socket.off("Chat Msg");
+        socket.off("Edit Msg");
         setonlineUsers(new Set());
     };
 
@@ -89,14 +102,15 @@ useEffect(() => {
           withCredentials: true
         });
         console.log("the response is sending message",response.data);
+
         socket.emit("Chat Msg", { meetid,joinid, chatid:response.data._id,displayname, content: Input,time:new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })});
         setInput("");
       }
   };
 
-  const editMessage=(content)=>{
+  const editMessage=(message)=>{
     setisEditing(true);
-    seteditInput(content);
+    seteditInput({...message});
   }
   const editMessagesend=async (e,chatid,meetid,content)=>{
     e.preventDefault();
@@ -108,14 +122,11 @@ useEffect(() => {
       withCredentials: true
     });
     console.log("the response is editing message",response.data);
-    const updatedMessage=Messages.map((message)=>{
-      if(message.chatid===chatid){
-        return {...message,content:content};
-      }
-      return message;
-    });
-    setMessages(updatedMessage);
+
+    socket.emit("Edit Msg", { meetid,joinid, chatid,displayname, content: content,time:new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })});
+
     setisEditing(false);
+    seteditInput("");
     }
     catch(err){
       console.log("the error is editing message",err);
@@ -182,10 +193,17 @@ return (
                 <div>
                   {!isEditing && (<p className="mb-1" style={{ fontSize: '1rem' }}>{message.content}</p>)}
                   
-                  <form onSubmit={(e)=>editMessagesend(e,message.chatid,message.meetid,editInput)}>
-                  {isEditing && (<input type="text" value={editInput} onChange={e => seteditInput(e.target.value)}  className="form-control bg-transparent text-black message-input" />)}
-                  <button type="submit" className="icon-btn"><CircleCheckBig size={20} color="black" /></button>
-                  </form>
+                  {isEditing && message.chatid!==editInput.chatid && (<p className="mb-1" style={{ fontSize: '1rem' }}>{message.content}</p>)}
+                  
+                  {isEditing && message.chatid===editInput.chatid && (
+                    <form onSubmit={(e)=>editMessagesend(e,message.chatid,message.meetid,editInput.content)}>
+                    <input type="text" value={editInput.content} onChange={e => seteditInput({...editInput,content:e.target.value})}  className="form-control bg-transparent text-black message-input" />
+                    
+                    <button type="submit" className="btn btn-dark btn-sm">Confirm</button>
+                    </form>
+                    )}
+
+                
 
                   <span className={`d-block text-end`} style={{ fontSize: '0.8rem', color: message.displayname==displayname ? '#d1c4e9' : '#b0b0b0' }}>{message.time}</span>
                 </div>  
@@ -196,16 +214,16 @@ return (
                         <button className="icon-btn"><CircleCheckBig size={20} color="black"  /></button>
                       )}
                       {!isEditing && (
-                        <button className="icon-btn"><Pencil size={20} color="black"onClick={(e) => editMessage(message.content)} /></button>
+                        <button className="icon-btn"><Pencil size={20} color="black"onClick={(e) => editMessage(message)} /></button>
                       )}
                       <button className="icon-btn"><Trash2 size={20} color="black" onClick={(e) => deleteMessage(message.chatid,message.meetid)} /></button>
                     
                   </div>
                 )} 
-              </div>
+              </div> {/*bubble end*/}
             </div>
           ))}
-          <div ref={messagesEndRef}></div>
+          <div ref={messagesEndRef}></div>{/*end of messages*/}
         </div>
       </div>
       {/* Message Input */}

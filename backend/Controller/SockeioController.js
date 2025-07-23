@@ -26,6 +26,11 @@ io.on("connection",(socket)=>{
             from: msg.displayname
         });
     });
+
+    // Listen for edit message event
+    socket.on('Edit Msg',(msg)=>{
+        io.to(msg.joinid).emit('Edit Msg',msg);
+    });
     
     //listen the request to join meeting room
     socket.on('Join Meeting',({displayname,joinid})=>{
