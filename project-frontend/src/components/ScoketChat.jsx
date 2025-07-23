@@ -62,13 +62,15 @@ useEffect(()=>{
     // Listen for edited messages
     socket.on("Edit Msg",(msg)=>{
       console.log("the message is edited",msg);
-      const updatedMessage=Messages.map((message)=>{
-        if(message.chatid===msg.chatid){
-          return {...message,content:msg.content};
-        }
-        return message;
+      setMessages((prev)=>{
+        const updatedMessage=prev.map((message)=>{
+          if(message.chatid===msg.chatid){
+            return msg;
+          }
+          return message;
+        });
+        return updatedMessage;
       });
-      setMessages(updatedMessage);
     });
     
 
@@ -192,7 +194,7 @@ return (
                 )}
                 <div>
                   {!isEditing && (<p className="mb-1" style={{ fontSize: '1rem' }}>{message.content}</p>)}
-                  
+
                   {isEditing && message.chatid!==editInput.chatid && (<p className="mb-1" style={{ fontSize: '1rem' }}>{message.content}</p>)}
                   
                   {isEditing && message.chatid===editInput.chatid && (
