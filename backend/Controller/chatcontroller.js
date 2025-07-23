@@ -47,7 +47,7 @@ module.exports.edit_chat=async(req,res)=>{
     updated_meet.Chats.push(updated_chat);
     await updated_meet.save();
     console.log("updated chat is",updated_chat);
-    res.send(`chat edited successfully ${updated_chat}`)
+    res.send(updated_chat)
 
     }
     catch(err){

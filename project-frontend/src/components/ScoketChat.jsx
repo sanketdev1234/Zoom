@@ -1,6 +1,6 @@
 import React from "react";
 import {useState , useEffect , useRef} from "react";
-import { Send, Users, Pencil,Trash2, Smile, Paperclip } from 'lucide-react';
+import { Send, Users, Pencil,Trash2, Smile, Paperclip, CircleCheckBig } from 'lucide-react';
 import {io} from "socket.io-client";
 import axios from "axios"
 import { useParams } from "react-router-dom";
@@ -17,6 +17,8 @@ const [onlineUsers,setonlineUsers] = useState(new Set());
 const [Messages,setMessages]=useState([]);
 const [Input,setInput]=useState("");
 const messagesEndRef=useRef(null);
+const [isEditing,setisEditing]=useState(false);
+const [editInput,seteditInput]=useState("");
 
 useEffect(()=>{
   async function checkuser(){
@@ -92,6 +94,51 @@ useEffect(() => {
       }
   };
 
+  const editMessage=(content)=>{
+    setisEditing(true);
+    seteditInput(content);
+  }
+  const editMessagesend=async (e,chatid,meetid,content)=>{
+    e.preventDefault();
+    try{  
+    const response=await axios.patch(`/meeting/${meetid}/chat/${chatid}/edit`,{Content:content}, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true
+    });
+    console.log("the response is editing message",response.data);
+    const updatedMessage=Messages.map((message)=>{
+      if(message.chatid===chatid){
+        return {...message,content:content};
+      }
+      return message;
+    });
+    setMessages(updatedMessage);
+    setisEditing(false);
+    }
+    catch(err){
+      console.log("the error is editing message",err);
+    }
+  }
+
+  const deleteMessage=async (chatid,meetid)=>{
+    try{
+    const response=await axios.delete(`/meeting/${meetid}/chat/${chatid}/delete`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true
+    });
+    console.log("the response is deleting message",response.data);
+    const updatedMessage=Messages.filter((message)=>message.chatid!==chatid);
+    setMessages(updatedMessage);
+    }
+    catch(err){
+      console.log("the error is deleting message",err);
+    }
+  }
+  
 return (
   <div className=" vh-100 gradient-bg">
     {/* Sidebar Chat Section */}
@@ -133,19 +180,28 @@ return (
                   <p className="text-white-50 mb-1" style={{ fontSize: '0.8rem', fontWeight: 500 }}>{message.displayname}</p>
                 )}
                 <div>
-                  <p className="mb-1" style={{ fontSize: '1rem' }}>{message.content}</p>
+                  {!isEditing && (<p className="mb-1" style={{ fontSize: '1rem' }}>{message.content}</p>)}
+                  
+                  <form onSubmit={(e)=>editMessagesend(e,message.chatid,message.meetid,editInput)}>
+                  {isEditing && (<input type="text" value={editInput} onChange={e => seteditInput(e.target.value)}  className="form-control bg-transparent text-black message-input" />)}
+                  <button type="submit" className="icon-btn"><CircleCheckBig size={20} color="black" /></button>
+                  </form>
+
                   <span className={`d-block text-end`} style={{ fontSize: '0.8rem', color: message.displayname==displayname ? '#d1c4e9' : '#b0b0b0' }}>{message.time}</span>
                 </div>  
-                {/* {message.displayname==displayname && (
+                {message.displayname==displayname && (
                   <div className="d-flex align-items-center justify-content-end">
-                    <form onSubmit={editMessage(msg.chatid,msg.meetid)}> 
-                      <button className="icon-btn"><Pencil size={20} color="#dee2e6" /></button>
-                    </form>
-                    <form onSubmit={deleteMessage(msg.chatid,msg.meetid)}>
-                      <button className="icon-btn"><Trash2 size={20} color="#dee2e6" /></button>
-                    </form>
+                    
+                      {isEditing && (
+                        <button className="icon-btn"><CircleCheckBig size={20} color="black"  /></button>
+                      )}
+                      {!isEditing && (
+                        <button className="icon-btn"><Pencil size={20} color="black"onClick={(e) => editMessage(message.content)} /></button>
+                      )}
+                      <button className="icon-btn"><Trash2 size={20} color="black" onClick={(e) => deleteMessage(message.chatid,message.meetid)} /></button>
+                    
                   </div>
-                )} */}
+                )} 
               </div>
             </div>
           ))}
