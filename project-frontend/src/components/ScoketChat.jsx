@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./ScoketChat.css";
+
 const socket=io("http://localhost:8080",{withCredentials:true});
 
 function SocketChat(){
@@ -176,6 +177,7 @@ return (
               <p className="text-white-50 mb-0" style={{ fontSize: '0.9rem' }}>{Array.from(onlineUsers).length} members online</p>
             </div>
           </div>
+        
         </div>
       </div>
       {/* Online Users */}
