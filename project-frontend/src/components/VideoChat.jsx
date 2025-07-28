@@ -242,11 +242,51 @@ function VideoChat() {
     }
 
     return (
-        <div style={{ padding: "20px" }}>
-            <h2>Video Chat Room: {joinid}</h2>
+        <div style={{ 
+            padding: "20px", 
+            backgroundColor: "#000000", 
+            color: "#ffffff",
+            minHeight: "100vh",
+            margin: 0
+        }}>
+            <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center", 
+                marginBottom: "20px" 
+            }}>
+                <button
+                    onClick={() => navigate(`/ongoingmeet/${meetid}/${joinid}`)}
+                    style={{
+                        backgroundColor: "#f3f4f6",
+                        color: "#374151",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 15px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#e5e7eb";
+                        e.target.style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "#f3f4f6";
+                        e.target.style.transform = "translateY(0)";
+                    }}
+                >
+                    ← Back To Chats
+                </button>
+                <h2 style={{ color: "#ffffff", margin: 0 }}>Video Chat Room: {joinid}</h2>
+            </div>
 
             <div style={{ marginBottom: "20px" }}>
-                <h3>Your Video</h3>
+                <h3 style={{ color: "#ffffff", marginBottom: "10px" }}>Your Video</h3>
                 <video
                     ref={localVideoRef}
                     autoPlay
@@ -255,14 +295,15 @@ function VideoChat() {
                     style={{
                         width: "300px",
                         height: "225px",
-                        border: "2px solid green",
-                        borderRadius: "8px"
+                        border: "2px solid #10b981",
+                        borderRadius: "8px",
+                        backgroundColor: "#1f2937"
                     }}
                 />
             </div>
 
             <div>
-                <h3>Other Participants ({Object.keys(remoteStreams).length})</h3> {/* Fixed: was remoteStream */}
+                <h3 style={{ color: "#ffffff", marginBottom: "10px" }}>Other Participants ({Object.keys(remoteStreams).length})</h3> {/* Fixed: was remoteStream */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                     {Object.entries(remoteStreams).map(([socketId, stream]) => ( // Fixed: was remoteStream
                         <div key={socketId}>
@@ -275,11 +316,12 @@ function VideoChat() {
                                 style={{
                                     width: "300px",
                                     height: "225px",
-                                    border: "2px solid blue",
-                                    borderRadius: "8px"
+                                    border: "2px solid #3b82f6",
+                                    borderRadius: "8px",
+                                    backgroundColor: "#1f2937"
                                 }}
                             />
-                            <p style={{ textAlign: "center", margin: "5px 0" }}>
+                            <p style={{ textAlign: "center", margin: "5px 0", color: "#ffffff" }}>
                                 User {socketId.slice(0, 6)}
                             </p>
                         </div>
@@ -288,8 +330,8 @@ function VideoChat() {
             </div>
 
             <div style={{ marginTop: "20px" }}>
-                <p>Local Stream: {localStream ? "✅ Connected" : "❌ Not connected"}</p>
-                <p>Remote Users: {Object.keys(remoteStreams).length}</p> {/* Fixed: was remoteStream */}
+                <p style={{ color: "#ffffff" }}>Local Stream: {localStream ? "✅ Connected" : "❌ Not connected"}</p>
+                <p style={{ color: "#ffffff" }}>Remote Users: {Object.keys(remoteStreams).length}</p> {/* Fixed: was remoteStream */}
             </div>
         </div>
     );

@@ -48,6 +48,8 @@ io.on("connection",(socket)=>{
         if(!userrooms.has(displayname))userrooms.set(displayname,new Set())
             userrooms.get(displayname).add(joinid);
         userset.add(displayname);
+        console.log("the user rooms are",userrooms);
+        console.log("the userset is",userset);
         console.log(`user ${displayname} joined the meeting of joining id ${joinid}`)
         io.to(joinid).emit('Online Users',Array.from(userset));
     });
@@ -57,6 +59,8 @@ io.on("connection",(socket)=>{
         socket.leave(joinid);
         if (userrooms.has(displayname)) userrooms.get(displayname).delete(joinid);
         userset.delete(displayname);
+        console.log("the user rooms are",userrooms);
+        console.log("the userset is",userset);
         console.log(`User ${displayname} left meeting ${joinid}`);
         io.to(joinid).emit('Online Users',Array.from(userset));
     });

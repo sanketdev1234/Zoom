@@ -1,0 +1,99 @@
+.video-call-launcher {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.video-call-btn {
+    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #e9ecef 50%, #f8f9fa 75%, #ffffff 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    padding: 16px 32px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    min-width: 200px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: #374151;
+    outline: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.video-call-btn:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f3f4 25%, #e8eaed 50%, #f1f3f4 75%, #ffffff 100%);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border-color: #d1d5db;
+}
+
+.video-call-btn:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 4px -1px rgba(0, 0, 0, 0.1),
+        0 1px 2px -1px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.video-call-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.video-call-btn:disabled:hover {
+    transform: none;
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.video-icon {
+    color: #3b82f6;
+    transition: transform 0.2s ease;
+}
+
+.video-call-btn:hover .video-icon {
+    transform: scale(1.1);
+}
+
+.btn-text {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .video-call-btn {
+        padding: 14px 24px;
+        min-width: 180px;
+        font-size: 14px;
+    }
+    
+    .btn-content {
+        gap: 8px;
+    }
+    
+    .video-icon {
+        width: 20px;
+        height: 20px;
+    }
+} 
