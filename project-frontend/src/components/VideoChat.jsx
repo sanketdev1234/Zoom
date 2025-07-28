@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Mic, MicOff, Video, VideoOff, Maximize2, Minimize2 } from 'lucide-react';
 import io from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
@@ -12,7 +13,12 @@ function VideoChat() {
     const [displayName, setdisplayName] = useState("");
     const [user, setuser] = useState(null);
     const [localStream, setLocalStream] = useState(null);
-    const [remoteStreams, setRemoteStreams] = useState({}); // Fixed: was remoteStream
+    const [remoteStreams, setRemoteStreams] = useState({});
+
+    const [fullScreenVideo, setFullScreenVideo] = useState(null);
+    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+
     const localVideoRef = useRef();
     const peerConnections = useRef({});
     const navigate = useNavigate();
@@ -35,6 +41,8 @@ function VideoChat() {
         }
         checkuser();
     }, [displayName]);
+
+
 
     useEffect(() => {
         async function getMedia() {
@@ -241,100 +249,285 @@ function VideoChat() {
         });
     }
 
-    return (
-        <div style={{ 
-            padding: "20px", 
-            backgroundColor: "#000000", 
-            color: "#ffffff",
-            minHeight: "100vh",
-            margin: 0
-        }}>
-            <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center", 
-                marginBottom: "20px" 
-            }}>
-                <button
-                    onClick={() => navigate(`/ongoingmeet/${meetid}/${joinid}`)}
-                    style={{
-                        backgroundColor: "#f3f4f6",
-                        color: "#374151",
-                        border: "none",
-                        borderRadius: "8px",
-                        padding: "10px 15px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        transition: "all 0.2s ease"
-                    }}
-                    onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#e5e7eb";
-                        e.target.style.transform = "translateY(-1px)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "#f3f4f6";
-                        e.target.style.transform = "translateY(0)";
-                    }}
-                >
-                    ← Back To Chats
-                </button>
-                <h2 style={{ color: "#ffffff", margin: 0 }}>Video Chat Room: {joinid}</h2>
-            </div>
 
-            <div style={{ marginBottom: "20px" }}>
-                <h3 style={{ color: "#ffffff", marginBottom: "10px" }}>Your Video</h3>
-                <video
-                    ref={localVideoRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    style={{
-                        width: "300px",
-                        height: "225px",
-                        border: "2px solid #10b981",
-                        borderRadius: "8px",
-                        backgroundColor: "#1f2937"
-                    }}
-                />
-            </div>
+    const handleVideoClick = (videoId) => {
+        if (fullScreenVideo === videoId) {
+            // Double click - exit full screen
+            setFullScreenVideo(null);
+        } else {
+            // Single click - enter full screen
+            setFullScreenVideo(videoId);
+        }
+    };
 
-            <div>
-                <h3 style={{ color: "#ffffff", marginBottom: "10px" }}>Other Participants ({Object.keys(remoteStreams).length})</h3> {/* Fixed: was remoteStream */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                    {Object.entries(remoteStreams).map(([socketId, stream]) => ( // Fixed: was remoteStream
-                        <div key={socketId}>
-                            <video
-                                autoPlay
-                                playsInline
-                                ref={el => {
-                                    if (el) el.srcObject = stream;
-                                }}
-                                style={{
-                                    width: "300px",
-                                    height: "225px",
-                                    border: "2px solid #3b82f6",
-                                    borderRadius: "8px",
-                                    backgroundColor: "#1f2937"
-                                }}
-                            />
-                            <p style={{ textAlign: "center", margin: "5px 0", color: "#ffffff" }}>
-                                User {socketId.slice(0, 6)}
-                            </p>
+    
+    const toggleAudio = () => {
+        if (localStream) {
+            const audioTracks = localStream.getAudioTracks();
+            audioTracks.forEach(track => {
+                track.enabled = !isAudioEnabled;
+            });
+        }
+        setIsAudioEnabled(!isAudioEnabled);
+    };
+
+    const toggleVideo = () => {
+        if (localStream) {
+            const videoTracks = localStream.getVideoTracks();
+            videoTracks.forEach(track => {
+                track.enabled = !isVideoEnabled;
+            });
+        }
+        setIsVideoEnabled(!isVideoEnabled);
+    };
+
+    const renderVideo = (stream, socketId,isLocal) => {
+        const videoId =  socketId;
+        const isFullScreen = fullScreenVideo === videoId;
+        
+        return (
+            <div 
+                key={videoId}
+                className={`${isFullScreen ? 'position-fixed w-100 h-100' : ''}`}
+                style={{
+                    zIndex: isFullScreen ? 9999 : 1,
+                    top: isFullScreen ? 0 : 'auto',
+                    left: isFullScreen ? 0 : 'auto',
+                    backgroundColor:'#000000'
+                }}
+            >
+                <div className="position-relative">
+                    <div 
+                        className={`${isFullScreen ? 'w-100 h-100 d-flex align-items-center justify-content-center' : ''}`}
+                        onClick={() => handleVideoClick(videoId)}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        <video
+                            ref={el=>{
+                                if(isLocal){
+                                    localVideoRef.current = el;
+                                }
+                                else if(el && stream){
+                                    el.srcObject = stream;
+                                }
+                            }}
+                            autoPlay
+                            
+                            playsInline
+                            className={`${isFullScreen ? '' : 'w-100'} rounded`}
+                            style={{
+                                height: isFullScreen ? '100vh' : '200px',
+                                objectFit: 'cover',
+                                backgroundColor: '#1f2937',
+                                border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
+                            }}
+                        />
+                        
+                        {/* Video overlay with user info and controls */}
+                        <div 
+                            className="position-absolute w-100 h-100 d-flex flex-column justify-content-between"
+                            style={{ 
+                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.5) 100%)',
+                                pointerEvents: 'none'
+                            }}
+                        >
+                            {/* Top overlay */}
+                            <div className="p-2">
+                                <span className="badge bg-dark text-white">
+                                    {isLocal ? `You (${displayName})` : `User ${socketId?.slice(0, 6)}`}
+                                </span>
+                                {isFullScreen && (
+                                    <button 
+                                        className="btn btn-dark btn-sm position-absolute top-0 end-0 m-2"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setFullScreenVideo(null);
+                                        }}
+                                        style={{ pointerEvents: 'auto', zIndex: 10000 }}
+                                    >
+                                        <Minimize2 size={16} />
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {/* Bottom overlay */}
+                            <div className="p-2 d-flex justify-content-between align-items-end">
+                                <div className="d-flex gap-1">
+                                    {isLocal && (
+                                        <>
+                                            <span className={`badge ${isAudioEnabled ? 'bg-success' : 'bg-danger'}`}>
+                                                {isAudioEnabled ? <Mic size={12} /> : <MicOff size={12} />}
+                                            </span>
+                                            <span className={`badge ${isVideoEnabled ? 'bg-success' : 'bg-danger'}`}>
+                                                {isVideoEnabled ? <Video size={12} /> : <VideoOff size={12} />}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                                
+                                {!isFullScreen && (
+                                    <button 
+                                        className="btn btn-dark btn-sm opacity-75"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleVideoClick(videoId);
+                                        }}
+                                        style={{ pointerEvents: 'auto' }}
+                                    >
+                                        <Maximize2 size={12} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    
+    return (
+        <div 
+            className="min-vh-100"
+            style={{ 
+                backgroundColor: '#000000',
+                color: '#ffffff'
+            }}
+        >
+               
+            <div className="container-fluid p-3">
+                {/* Header */}
+                <div className="row mb-4">
+                    <div className="col-12">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <button
+                                className="btn btn-light d-flex align-items-center gap-2"
+                                onClick={() =>  navigate(`/ongoingmeet/${meetid}/${joinid}`)}
+                            >
+                                <ArrowLeft size={16} />
+                                Back To Chats
+                            </button>
+                            <h4 className="text-white mb-0">Video Chat Room: {joinid}</h4>
+                            <div></div> {/* Spacer for flexbox */}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Media Controls */}
+                <div className="row mb-4">
+                    <div className="col-12">
+                        <div className="d-flex justify-content-center gap-3">
+                            <button
+                                className={`btn ${isAudioEnabled ? 'btn-success' : 'btn-danger'} d-flex align-items-center gap-2`}
+                                onClick={toggleAudio}
+                            >
+                                {isAudioEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+                                {isAudioEnabled ? 'Mute' : 'Unmute'}
+                            </button>
+                            <button
+                                className={`btn ${isVideoEnabled ? 'btn-success' : 'btn-danger'} d-flex align-items-center gap-2`}
+                                onClick={toggleVideo}
+                            >
+                                {isVideoEnabled ? <Video size={16} /> : <VideoOff size={16} />}
+                                {isVideoEnabled ? 'Stop Video' : 'Start Video'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Video Grid */}
+                <div className="row g-3">
+                    {/* Local Video */}
+                    <div className="col-12 col-md-5 offset-md-1">
+                        <div className="mb-2">
+                            <h6 className="text-white mb-2">Your Video</h6>
+                        </div>
+                        {renderVideo( localStream,"localuser", true)}
+                    </div>
+
+                    {/* Remote Videos */}
+                    {Object.entries(remoteStreams).map(([socketId, stream], index) => {
+                        if (!stream) return null;
+                        
+                        return (
+                            <div 
+                                key={socketId} 
+                                className={`col-12 ${index === 0 ? 'col-md-5' : 'col-md-5 offset-md-1'}`}
+                            >
+                                {index === 0 && (
+                                    <div className="mb-2">
+                                        <h6 className="text-white mb-2">
+                                            Other Participants ({Object.keys(remoteStreams).filter(key => remoteStreams[key]).length})
+                                        </h6>
+                                    </div>
+                                )}
+                                {renderVideo(stream, socketId,false)}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Connection Status */}
+                <div className="row mt-4">
+                    <div className="col-12">
+                        <div className="d-flex justify-content-center gap-4">
+                            <span className="badge bg-secondary">
+                                Local Stream: {localStream ? "✅ Connected" : "❌ Not connected"}
+                            </span>
+                            <span className="badge bg-secondary">
+                                Users: {Object.keys(remoteStreams).filter(key => remoteStreams[key]).length}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div style={{ marginTop: "20px" }}>
-                <p style={{ color: "#ffffff" }}>Local Stream: {localStream ? "✅ Connected" : "❌ Not connected"}</p>
-                <p style={{ color: "#ffffff" }}>Remote Users: {Object.keys(remoteStreams).length}</p> {/* Fixed: was remoteStream */}
-            </div>
+            {/* Full Screen Video Overlay */}
+            {fullScreenVideo && (
+                <div className="position-fixed w-100 h-100 bg-dark d-flex align-items-center justify-content-center" style={{ top: 0, left: 0, zIndex: 9998 }}>
+                    <div className="text-center">
+                        <p className="text-white mb-2">Click to exit full screen • Double-click to toggle</p>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                .min-vh-100 {
+                    min-height: 100vh;
+                }
+                
+                video {
+                    transition: all 0.3s ease;
+                }
+                
+                video:hover {
+                    transform: scale(1.02);
+                }
+                
+                .btn {
+                    transition: all 0.2s ease;
+                }
+                
+                .btn:hover {
+                    transform: translateY(-1px);
+                }
+                
+                .position-relative:hover .position-absolute {
+                    opacity: 1;
+                }
+                
+                .badge {
+                    font-size: 0.75em;
+                }
+                
+                @media (max-width: 767.98px) {
+                    video {
+                        height: 250px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
-
 }
+
 export default VideoChat;
