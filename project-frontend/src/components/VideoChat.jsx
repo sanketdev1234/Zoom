@@ -281,8 +281,8 @@ function VideoChat() {
         setIsVideoEnabled(!isVideoEnabled);
     };
 
-    const renderVideo = (stream, socketId,isLocal) => {
-        const videoId =  socketId;
+    const renderVideo = (stream, socketId, isLocal) => {
+        const videoId = socketId;
         const isFullScreen = fullScreenVideo === videoId;
         
         return (
@@ -293,95 +293,135 @@ function VideoChat() {
                     zIndex: isFullScreen ? 9999 : 1,
                     top: isFullScreen ? 0 : 'auto',
                     left: isFullScreen ? 0 : 'auto',
-                    backgroundColor:'#000000'
+                    backgroundColor: '#000000'
                 }}
             >
-                <div className="position-relative">
-                    <div 
-                        className={`${isFullScreen ? 'w-100 h-100 d-flex align-items-center justify-content-center' : ''}`}
-                        onClick={() => handleVideoClick(videoId)}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <video
-                            ref={el=>{
-                                if(isLocal){
-                                    localVideoRef.current = el;
-                                }
-                                else if(el && stream){
-                                    el.srcObject = stream;
-                                }
-                            }}
-                            autoPlay
-                            
-                            playsInline
-                            className={`${isFullScreen ? '' : 'w-100'} rounded`}
-                            style={{
-                                height: isFullScreen ? '100vh' : '200px',
-                                objectFit: 'cover',
-                                backgroundColor: '#1f2937',
-                                border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
-                            }}
-                        />
+                {isFullScreen ? (
+                    // Fullscreen layout with flexbox
+                    <div className="w-100 h-100 d-flex">
+                        {/* Video container */}
+                        <div className="flex-grow-1 d-flex align-items-center justify-content-center">
+                            <video
+                                ref={el => {
+                                    if (isLocal) {
+                                        localVideoRef.current = el;
+                                    }
+                                    else if (el && stream) {
+                                        el.srcObject = stream;
+                                    }
+                                }}
+                                autoPlay
+                                playsInline
+                                className="rounded"
+                                onClick={() => handleVideoClick(videoId)}
+                                style={{
+                                    height: '100vh',
+                                    objectFit: 'cover',
+                                    backgroundColor: '#1f2937',
+                                    border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
+                                }}
+                            />
+                        </div>
                         
-                        {/* Video overlay with user info and controls */}
-                        <div 
-                            className="position-absolute w-100 h-100 d-flex flex-column justify-content-between"
-                            style={{ 
-                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.5) 100%)',
-                                pointerEvents: 'none'
-                            }}
-                        >
-                            {/* Top overlay */}
-                            <div className="p-2">
+                        {/* Controls on right side */}
+                        <div className="d-flex flex-column justify-content-between p-3" style={{ minWidth: '200px' }}>
+                            {/* Top section */}
+                            <div className="d-flex flex-column gap-3">
                                 <span className="badge bg-dark text-white">
                                     {isLocal ? `You (${displayName})` : `User ${socketId?.slice(0, 6)}`}
                                 </span>
-                                {isFullScreen && (
-                                    <button 
-                                        className="btn btn-dark btn-sm position-absolute top-0 end-0 m-2"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setFullScreenVideo(null);
-                                        }}
-                                        style={{ pointerEvents: 'auto', zIndex: 10000 }}
-                                    >
-                                        <Minimize2 size={16} />
-                                    </button>
-                                )}
+                                <button 
+                                    className="btn btn-dark btn-sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setFullScreenVideo(null);
+                                    }}
+                                >
+                                    <Minimize2 size={16} />
+                                </button>
                             </div>
                             
-                            {/* Bottom overlay */}
-                            <div className="p-2 d-flex justify-content-between align-items-end">
-                                <div className="d-flex gap-1">
-                                    {isLocal && (
-                                        <>
-                                            <span className={`badge ${isAudioEnabled ? 'bg-success' : 'bg-danger'}`}>
-                                                {isAudioEnabled ? <Mic size={12} /> : <MicOff size={12} />}
-                                            </span>
-                                            <span className={`badge ${isVideoEnabled ? 'bg-success' : 'bg-danger'}`}>
-                                                {isVideoEnabled ? <Video size={12} /> : <VideoOff size={12} />}
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
-                                
-                                {!isFullScreen && (
-                                    <button 
-                                        className="btn btn-dark btn-sm opacity-75"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleVideoClick(videoId);
-                                        }}
-                                        style={{ pointerEvents: 'auto' }}
-                                    >
-                                        <Maximize2 size={12} />
-                                    </button>
+                            {/* Bottom section - controls */}
+                            <div className="d-flex flex-column gap-2">
+                                {isLocal && (
+                                    <>
+                                        <button 
+                                            className={`btn ${isAudioEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
+                                            onClick={toggleAudio}
+                                        >
+                                            {isAudioEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+                                        </button>
+                                        <button 
+                                            className={`btn ${isVideoEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
+                                            onClick={toggleVideo}
+                                        >
+                                            {isVideoEnabled ? <Video size={16} /> : <VideoOff size={16} />}
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                ) : (
+                    // Normal layout with flexbox
+                    <div className="d-flex flex-column">
+                        {/* Video container */}
+                        <div 
+                            onClick={() => handleVideoClick(videoId)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <video
+                                ref={el => {
+                                    if (isLocal) {
+                                        localVideoRef.current = el;
+                                    }
+                                    else if (el && stream) {
+                                        el.srcObject = stream;
+                                    }
+                                }}
+                                autoPlay
+                                playsInline
+                                className="w-100 rounded"
+                                style={{
+                                    height: '200px',
+                                    objectFit: 'cover',
+                                    backgroundColor: '#1f2937',
+                                    border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
+                                }}
+                            />
+                        </div>
+                        
+                        {/* Controls below video */}
+                        <div className="d-flex justify-content-between align-items-center p-2 bg-dark">
+                            <div className="d-flex gap-2">
+                                <span className="badge bg-secondary text-white">
+                                    {isLocal ? `You (${displayName})` : `User ${socketId?.slice(0, 6)}`}
+                                </span>
+                                {isLocal && (
+                                    <>
+                                        <span className={`badge ${isAudioEnabled ? 'bg-success' : 'bg-danger'}`}>
+                                            {isAudioEnabled ? <Mic size={12} /> : <MicOff size={12} />}
+                                        </span>
+                                        <span className={`badge ${isVideoEnabled ? 'bg-success' : 'bg-danger'}`}>
+                                            {isVideoEnabled ? <Video size={12} /> : <VideoOff size={12} />}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+                            
+                            <button 
+                                className="btn btn-dark btn-sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleVideoClick(videoId);
+                                }}
+                            >
+                                <Maximize2 size={12} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div> 
         );
     };
 
@@ -394,7 +434,7 @@ function VideoChat() {
                 color: '#ffffff'
             }}
         >
-               
+            
             <div className="container-fluid p-3">
                 {/* Header */}
                 <div className="row mb-4">
@@ -468,18 +508,7 @@ function VideoChat() {
                 </div>
 
                 {/* Connection Status */}
-                <div className="row mt-4">
-                    <div className="col-12">
-                        <div className="d-flex justify-content-center gap-4">
-                            <span className="badge bg-secondary">
-                                Local Stream: {localStream ? "✅ Connected" : "❌ Not connected"}
-                            </span>
-                            <span className="badge bg-secondary">
-                                Users: {Object.keys(remoteStreams).filter(key => remoteStreams[key]).length}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
             {/* Full Screen Video Overlay */}
