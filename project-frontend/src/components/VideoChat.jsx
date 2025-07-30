@@ -15,8 +15,8 @@ function VideoChat() {
     const [localStream, setLocalStream] = useState(null);
     const [remoteStreams, setRemoteStreams] = useState({}); 
     const [screenStream, setScreenStream] = useState(null);
-    const [fullScreenStream, setFullScreenStream] = useState(null);
     const [fullScreenVideo, setFullScreenVideo] = useState(null);
+    const [fullScreenScreenShare, setFullScreenScreenShare] = useState(null);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isScreenSharingEnabled, setIsScreenSharingEnabled] = useState(false);
@@ -196,7 +196,15 @@ function VideoChat() {
                     });
                 }
             });
-            screenVideoRef.current.srcObject = screenStream;
+            
+            // Set screen stream to video ref if it exists
+            if (screenVideoRef.current) {
+                try {
+                    screenVideoRef.current.srcObject = screenStream;
+                } catch (error) {
+                    console.error("Error setting screen stream to video ref:", error);
+                }
+            }
         }
     }, [screenStream]);
 
@@ -365,13 +373,17 @@ function VideoChat() {
         }
     };
 
-    const screenStreamClick = (screenId) => {
-        if (fullScreenStream === screenId) {
-            setFullScreenStream(null);
+    const handleScreenShareClick = (screenShareId) => {
+        if (fullScreenScreenShare === screenShareId) {
+            // Double click - exit full screen
+            setFullScreenScreenShare(null);
         } else {
-            setFullScreenStream(screenId);
+            // Single click - enter full screen
+            setFullScreenScreenShare(screenShareId);
         }
-    }
+    };
+
+
 
     const toggleScreenStream = () => {
         handleScreenStream(); // Call the main screen sharing function
@@ -397,10 +409,137 @@ function VideoChat() {
         setIsVideoEnabled(!isVideoEnabled);
     };
 
+    const renderScreenShare = (stream, socketId, isLocal) => {
+        const screenShareId = `screen-${socketId}`;
+        const isFullScreen = fullScreenScreenShare === screenShareId;
+        return (
+            <div 
+                key={screenShareId}
+                className={`${isFullScreen ? 'position-fixed w-100 h-100' : ''}`}
+                style={{
+                    zIndex: isFullScreen ? 9999 : 1,
+                    top: isFullScreen ? 0 : 'auto',
+                    left: isFullScreen ? 0 : 'auto',
+                    backgroundColor: '#000000'
+                }}
+            >
+                {isFullScreen ? (
+                    // Fullscreen layout
+                    <div className="w-100 h-100 d-flex">
+                        {/* Screen share container */}
+                        <div className="flex-grow-1 d-flex flex-column gap-2 align-items-center justify-content-center">
+                                                         <video
+                                 ref={el => {
+                                     if (el && stream) {
+                                         try {
+                                             el.srcObject = stream;
+                                         } catch (error) {
+                                             console.error("Error setting srcObject for screen share fullscreen:", error);
+                                         }
+                                     }
+                                 }}
+                                 autoPlay
+                                 playsInline
+                                 className="rounded"
+                                 onClick={() => handleScreenShareClick(screenShareId)}
+                                 style={{
+                                     height: '100vh',
+                                     objectFit: 'contain',
+                                     backgroundColor: '#1f2937',
+                                     border: '2px solid #f59e0b'
+                                 }}
+                             />
+                        </div>
+                        
+                        {/* Controls on right side */}
+                        <div className="d-flex flex-column justify-content-between p-3" style={{ minWidth: '200px' }}>
+                            {/* Top section */}
+                            <div className="d-flex flex-column gap-3">
+                                <span className="badge bg-dark text-white">
+                                    {isLocal ? `Your Screen Share` : `Screen Share from User ${socketId?.slice(0, 6)}`}
+                                </span>
+                                <button 
+                                    className="btn btn-dark btn-sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setFullScreenScreenShare(null);
+                                    }}
+                                >
+                                    <Minimize2 size={16} />
+                                </button>
+                            </div>
+                            
+                            {/* Bottom section - controls */}
+                            <div className="d-flex flex-column gap-2">
+                                {isLocal && (
+                                    <button 
+                                        className="btn btn-danger btn-sm"
+                                        onClick={toggleScreenStream}
+                                        title="Stop Screen Share"
+                                    >
+                                        <MonitorOff size={16} /> Stop
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    // Normal layout
+                    <div className="d-flex flex-column">
+                        {/* Screen share container */}
+                        <div 
+                            onClick={() => handleScreenShareClick(screenShareId)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                                                         <video
+                                 ref={el => {
+                                     if (el && stream) {
+                                         try {
+                                             el.srcObject = stream;
+                                         } catch (error) {
+                                             console.error("Error setting srcObject for screen share normal:", error);
+                                         }
+                                     }
+                                 }}
+                                 autoPlay
+                                 playsInline
+                                 className="w-100 rounded"
+                                 style={{
+                                     height: '200px',
+                                     objectFit: 'contain',
+                                     backgroundColor: '#1f2937',
+                                     border: '2px solid #f59e0b'
+                                 }}
+                             />
+                        </div>
+                        
+                        {/* Controls below screen share */}
+                        <div className="d-flex justify-content-between align-items-center p-2 bg-dark">
+                            <div className="d-flex gap-2">
+                                <span className="badge bg-secondary text-white">
+                                    {isLocal ? `Your Screen Share` : `Screen Share from User ${socketId?.slice(0, 6)}`}
+                                </span>
+                            </div>
+                            
+                            <button 
+                                className="btn btn-dark btn-sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleScreenShareClick(screenShareId);
+                                }}
+                            >
+                                <Maximize2 size={12} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div> 
+        );
+    };
+
     const renderVideo = (stream, socketId, isLocal) => {
         const videoId = socketId;
         const isFullScreen = fullScreenVideo === videoId;
-        const isFullScreenStream = fullScreenStream === socketId;
         return (
             <div 
                 key={videoId}
@@ -416,41 +555,38 @@ function VideoChat() {
                     // Fullscreen layout with flexbox
                     <div className="w-100 h-100 d-flex">
                         {/* Video container */}
-                                <div className="flex-grow-1 d-flex flex-column gap-2 align-items-center justify-content-center">
-                                    {screenStream && isLocal && isFullScreenStream && (
-                                <video
-                                    ref={screenVideoRef}
-                                    autoPlay
-                                    playsInline
-                                    className="rounded"
-                                    style={{
-                                        height: '80vh',
-                                        objectFit: 'contain',
-                                        backgroundColor: '#1f2937',
-                                        border: '2px solid #f59e0b'
-                                    }}
-                                />
-                            )}
-                            <video
-                                ref={el => {
-                                    if (isLocal) {
-                                        localVideoRef.current = el;
-                                    }
-                                    else if (el && stream) {
-                                        el.srcObject = stream;
-                                    }
-                                }}
-                                autoPlay
-                                playsInline
-                                className="rounded"
-                                onClick={() => handleVideoClick(videoId)}
-                                style={{
-                                    height: '100vh',
-                                    objectFit: 'cover',
-                                    backgroundColor: '#1f2937',
-                                    border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
-                                }}
-                            />
+                        <div className="flex-grow-1 d-flex flex-column gap-2 align-items-center justify-content-center">
+                                                         <video
+                                 ref={el => {
+                                     if (isLocal) {
+                                         localVideoRef.current = el;
+                                         if (el && localStream) {
+                                             try {
+                                                 el.srcObject = localStream;
+                                             } catch (error) {
+                                                 console.error("Error setting srcObject for local video fullscreen:", error);
+                                             }
+                                         }
+                                     }
+                                     else if (el && stream) {
+                                         try {
+                                             el.srcObject = stream;
+                                         } catch (error) {
+                                             console.error("Error setting srcObject for remote video fullscreen:", error);
+                                         }
+                                     }
+                                 }}
+                                 autoPlay
+                                 playsInline
+                                 className="rounded"
+                                 onClick={() => handleVideoClick(videoId)}
+                                 style={{
+                                     height: '100vh',
+                                     objectFit: 'cover',
+                                     backgroundColor: '#1f2937',
+                                     border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
+                                 }}
+                             />
                         </div>
                         
                         {/* Controls on right side */}
@@ -471,32 +607,32 @@ function VideoChat() {
                                 </button>
                             </div>
                             
-                                     {/* Bottom section - controls */}
-                             <div className="d-flex flex-column gap-2">
-                                 {isLocal && (
-                                     <>
-                                         <button 
-                                             className={`btn ${isAudioEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
-                                             onClick={toggleAudio}
-                                         >
-                                             {isAudioEnabled ? <Mic size={16} /> : <MicOff size={16} />}
-                                         </button>
-                                         <button 
-                                             className={`btn ${isVideoEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
-                                             onClick={toggleVideo}
-                                         >
-                                             {isVideoEnabled ? <Video size={16} /> : <VideoOff size={16} />}
-                                         </button>
-                                         <button 
-                                             className={`btn ${isScreenSharingEnabled ? 'btn-warning' : 'btn-secondary'} btn-sm`}
-                                             onClick={toggleScreenStream}
-                                             title={isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
-                                         >
-                                             {isScreenSharingEnabled ? <MonitorOff size={16} /> : <Monitor size={16} />}
-                                         </button>
-                                     </>
-                                 )}
-                             </div>
+                            {/* Bottom section - controls */}
+                            <div className="d-flex flex-column gap-2">
+                                {isLocal && (
+                                    <>
+                                        <button 
+                                            className={`btn ${isAudioEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
+                                            onClick={toggleAudio}
+                                        >
+                                            {isAudioEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+                                        </button>
+                                        <button 
+                                            className={`btn ${isVideoEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
+                                            onClick={toggleVideo}
+                                        >
+                                            {isVideoEnabled ? <Video size={16} /> : <VideoOff size={16} />}
+                                        </button>
+                                        <button 
+                                            className={`btn ${isScreenSharingEnabled ? 'btn-warning' : 'btn-secondary'} btn-sm`}
+                                            onClick={toggleScreenStream}
+                                            title={isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
+                                        >
+                                            {isScreenSharingEnabled ? <MonitorOff size={16} /> : <Monitor size={16} />}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ) : (
@@ -507,28 +643,37 @@ function VideoChat() {
                             onClick={() => handleVideoClick(videoId)}
                             style={{ cursor: 'pointer' }}
                         >
-                            <video
-                                ref={el => {
-                                    if (isLocal) {
-                                        localVideoRef.current = el;
-                                    }
-                                    else if (el && stream) {
-                                        el.srcObject = stream;
-                                    }
-                                }}
-                                autoPlay
-                                playsInline
-                                className="w-100 rounded"
-                                style={{
-                                    height: '200px',
-                                    objectFit: 'cover',
-                                    backgroundColor: '#1f2937',
-                                    border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
-                                }}
-                            />
+                                                         <video
+                                 ref={el => {
+                                     if (isLocal) {
+                                         localVideoRef.current = el;
+                                         if (el && localStream) {
+                                             try {
+                                                 el.srcObject = localStream;
+                                             } catch (error) {
+                                                 console.error("Error setting srcObject for local video normal:", error);
+                                             }
+                                         }
+                                     }
+                                     else if (el && stream) {
+                                         try {
+                                             el.srcObject = stream;
+                                         } catch (error) {
+                                             console.error("Error setting srcObject for remote video normal:", error);
+                                         }
+                                     }
+                                 }}
+                                 autoPlay
+                                 playsInline
+                                 className="w-100 rounded"
+                                 style={{
+                                     height: '200px',
+                                     objectFit: 'cover',
+                                     backgroundColor: '#1f2937',
+                                     border: isLocal ? '2px solid #10b981' : '2px solid #3b82f6'
+                                 }}
+                             />
                         </div>
-                        
-                        
                         
                         {/* Controls below video */}
                         <div className="d-flex justify-content-between align-items-center p-2 bg-dark">
@@ -541,18 +686,9 @@ function VideoChat() {
                                         <span className={`badge ${isAudioEnabled ? 'bg-success' : 'bg-danger'}`}>
                                             {isAudioEnabled ? <Mic size={12} /> : <MicOff size={12} />}
                                         </span>
-
-                                                                                <button 
-                                             className={`btn ${isScreenSharingEnabled ? 'btn-success' : 'btn-secondary'} btn-sm`}
-                                             onClick={toggleScreenStream}
-                                             title={isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
-                                         >
-                                             {isScreenSharingEnabled ? <MonitorOff size={12} /> : <Monitor size={12} />}
-                                         </button>
-
-                                         <span className={`badge ${isVideoEnabled ? 'bg-success' : 'bg-danger'}`}>
-                                             {isVideoEnabled ? <Video size={12} /> : <VideoOff size={12} />}
-                                         </span>
+                                        <span className={`badge ${isVideoEnabled ? 'bg-success' : 'bg-danger'}`}>
+                                            {isVideoEnabled ? <Video size={12} /> : <VideoOff size={12} />}
+                                        </span>
                                     </>
                                 )}
                             </div>
@@ -668,24 +804,7 @@ function VideoChat() {
                                 <div className="mb-2">
                                     <h6 className="text-white mb-0">Screen Share from User {socketId?.slice(0, 6)}</h6>
                                 </div>
-                                <div className="position-relative">
-                                    <video
-                                        autoPlay
-                                        playsInline
-                                        className="w-100 rounded"
-                                        style={{
-                                            height: '400px',
-                                            objectFit: 'contain',
-                                            backgroundColor: '#1f2937',
-                                            border: '2px solid #3b82f6'
-                                        }}
-                                        ref={el => {
-                                            if (el) {
-                                                el.srcObject = stream;
-                                            }
-                                        }}
-                                    />
-                                </div>
+                                {renderScreenShare(stream, socketId, false)}
                             </div>
                         </div>
                     );
@@ -693,43 +812,30 @@ function VideoChat() {
 
                 {/* Video Grid */}
                 <div className="row g-3">
-                                         {/* Local Video */}
-                     <div className="col-12 col-md-5 offset-md-1">
-                         <div className="mb-2">
-                             <h6 className="text-white mb-2">Your Video</h6>
-                         </div>
-                         {renderVideo( localStream,"localuser", true)}
-                         
-                         {/* Screen Share Preview for Local User */}
-                         {screenStream && (
-                             <div className="mt-3">
-                                 <div className="mb-2 d-flex justify-content-between align-items-center">
-                                     <h6 className="text-white mb-0">Your Screen Share</h6>
-                                     <button 
-                                         className="btn btn-danger btn-sm"
-                                         onClick={toggleScreenStream}
-                                         title="Stop Screen Share"
-                                     >
-                                         <MonitorOff size={14} /> Stop
-                                     </button>
-                                 </div>
-                                 <div className="position-relative">
-                                     <video
-                                         ref={screenVideoRef}
-                                         autoPlay
-                                         playsInline
-                                         className="w-100 rounded"
-                                         style={{
-                                             height: '200px',
-                                             objectFit: 'contain',
-                                             backgroundColor: '#1f2937',
-                                             border: '2px solid #f59e0b'
-                                         }}
-                                     />
-                                 </div>
-                             </div>
-                         )}
-                     </div>
+                    {/* Local Video */}
+                    <div className="col-12 col-md-5 offset-md-1">
+                        <div className="mb-2">
+                            <h6 className="text-white mb-2">Your Video</h6>
+                        </div>
+                        {renderVideo(localStream, "localuser", true)}
+                    </div>
+
+                    {/* Screen Share Preview for Local User */}
+                    {screenStream && (
+                        <div className="col-12 col-md-5 offset-md-1">
+                            <div className="mb-2 d-flex justify-content-between align-items-center">
+                                <h6 className="text-white mb-0">Your Screen Share</h6>
+                                <button 
+                                    className="btn btn-danger btn-sm"
+                                    onClick={toggleScreenStream}
+                                    title="Stop Screen Share"
+                                >
+                                    <MonitorOff size={14} /> Stop
+                                </button>
+                            </div>
+                            {renderScreenShare(screenStream, "localuser", true)}
+                        </div>
+                    )}
 
                     {/* Remote Videos */}
                     {Object.entries(remoteStreams).map(([socketId, stream], index) => {
@@ -759,6 +865,15 @@ function VideoChat() {
 
             {/* Full Screen Video Overlay */}
             {fullScreenVideo && (
+                <div className="position-fixed w-100 h-100 bg-dark d-flex align-items-center justify-content-center" style={{ top: 0, left: 0, zIndex: 9998 }}>
+                    <div className="text-center">
+                        <p className="text-white mb-2">Click to exit full screen • Double-click to toggle</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Full Screen Screen Share Overlay */}
+            {fullScreenScreenShare && (
                 <div className="position-fixed w-100 h-100 bg-dark d-flex align-items-center justify-content-center" style={{ top: 0, left: 0, zIndex: 9998 }}>
                     <div className="text-center">
                         <p className="text-white mb-2">Click to exit full screen • Double-click to toggle</p>
