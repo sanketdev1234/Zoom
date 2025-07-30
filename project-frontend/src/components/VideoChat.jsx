@@ -186,7 +186,7 @@ function VideoChat() {
                 const senders = pc.getSenders();
                 const hasScreenTrack = senders.some(sender => 
                     sender.track && sender.track.kind === 'video' && 
-                    (sender.track.label.includes('screen:0:0') )
+                    (sender.track.label.includes('screen') ) ||  (sender.track.label.includes('Screen') )
                 );
                 
                 if (!hasScreenTrack) {
@@ -206,7 +206,7 @@ function VideoChat() {
                 }
             }
         }
-    }, [screenStream]);
+    }, [isScreenSharingEnabled]);
 
     function createPeerConnection(socketId, polite) {
         if (peerConnections.current[socketId]) {
@@ -220,10 +220,14 @@ function VideoChat() {
         makingoffer.current[socketId] = false;
         ignoreoffer.current[socketId] = false;
 
+        
         localStream.getTracks().forEach((track) => { // Fixed: was getTrack() - should be getTracks()
             console.log("the track is ", track.kind)
             pc.addTrack(track, localStream);
         });
+    
+        
+            
         if (screenStream) {
             screenStream.getTracks().forEach((track) => {
                 console.log("the track is ", track.kind)
@@ -247,7 +251,7 @@ function VideoChat() {
             console.log("the track is ", event.track.kind, "from the user ", socketId, "track label:", event.track.label);
             
             // Check if this is a screen track
-            const isScreenTrack = event.track.label.includes('screen:0:0');
+            const isScreenTrack = event.track.label.includes('screen') || event.track.label.includes('Screen');
             console.log("Is screen track:", isScreenTrack);
             
             setRemoteStreams((prev) => ({ ...prev, [socketId]: event.streams[0] })); // Fixed: was setRemoteStream
@@ -769,17 +773,6 @@ function VideoChat() {
                             >
                                 {isScreenSharingEnabled ? <MonitorOff size={16} /> : <Monitor size={16} />}
                                 {isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
-                            </button>
-                            <button
-                                className="btn btn-info btn-sm"
-                                onClick={() => {
-                                    console.log("Screen stream status:", screenStream);
-                                    console.log("Screen video ref:", screenVideoRef.current);
-                                    console.log("Peer connections:", Object.keys(peerConnections.current));
-                                }}
-                                title="Debug Screen Share"
-                            >
-                                Debug
                             </button>
                         </div>
                     </div>
