@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Mic, MicOff, Video, VideoOff, Maximize2, Minimize2 } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, Video, VideoOff, Maximize2, Minimize2, Monitor, MonitorOff } from 'lucide-react';
 import io from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { useRef } from 'react';
 import axios from 'axios';
-
+import adapter from 'webrtc-adapter';
 const socket = io.connect("http://localhost:8080", { withCredentials: true });
 
 function VideoChat() {
@@ -13,12 +13,15 @@ function VideoChat() {
     const [displayName, setdisplayName] = useState("");
     const [user, setuser] = useState(null);
     const [localStream, setLocalStream] = useState(null);
-    const [remoteStreams, setRemoteStreams] = useState({});
-
+    const [remoteStreams, setRemoteStreams] = useState({}); 
+    const [screenStream, setScreenStream] = useState(null);
+    const [fullScreenStream, setFullScreenStream] = useState(null);
     const [fullScreenVideo, setFullScreenVideo] = useState(null);
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+    const [isScreenSharingEnabled, setIsScreenSharingEnabled] = useState(false);
 
+    const screenVideoRef = useRef();
     const localVideoRef = useRef();
     const peerConnections = useRef({});
     const navigate = useNavigate();
@@ -49,6 +52,7 @@ function VideoChat() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 setLocalStream(stream);
+                console.log("the local stream is ", stream);
                 if (localVideoRef.current) {
                     localVideoRef.current.srcObject = stream;
                 }
@@ -63,8 +67,75 @@ function VideoChat() {
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop()); // Fixed: was track.close()
             }
+            if (screenStream) {
+                screenStream.getTracks().forEach(track => track.stop());
+            }
         }
     }, []);
+
+    async function handleScreenStream() {
+        try {
+            if (screenStream) {
+                // Stop current screen sharing
+                screenStream.getTracks().forEach(track => track.stop());
+                setScreenStream(null);
+                setIsScreenSharingEnabled(false);
+                
+                // Remove screen tracks from all peer connections
+                Object.values(peerConnections.current).forEach(pc => {
+                    const senders = pc.getSenders();
+                    console.log("the senders are for screen sharing", senders);
+                    senders.forEach(sender => {
+                        if (sender.track && sender.track.kind === 'video' && sender.track.label.includes('screen')) {
+                            console.log("the sender is for screen sharing", sender);
+                            pc.removeTrack(sender);
+                        }
+                    });
+                });
+
+            } else {
+                // Start screen sharing
+                const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: { 
+                        cursor: "always",
+                    }, 
+                    audio: false 
+                });
+                setScreenStream(stream);
+                console.log("the screen stream is ", stream);
+                setIsScreenSharingEnabled(true);
+                
+                if (screenVideoRef.current) {
+                    screenVideoRef.current.srcObject = stream;
+                }
+                
+                // Add screen tracks to all existing peer connections
+                Object.values(peerConnections.current).forEach(pc => {
+                    stream.getTracks().forEach(track => {
+                        console.log("Adding screen track to peer:", track.kind, track.label);
+                        const sender = pc.addTrack(track, stream);
+                        console.log("Screen track sender created:", sender);
+                    });
+                });
+                
+                // Handle screen stream ending
+                stream.getVideoTracks()[0].onended = () => {
+                    console.log("Screen share ended by user");
+                    handleScreenStream(); // This will stop screen sharing
+                };
+            }
+        }
+        catch (error) {
+            console.log("error in getting screen stream is ", error);
+            if (error.name === 'NotAllowedError') {
+                window.alert("Screen sharing permission denied. Please allow screen sharing access.");
+            } else {
+                window.alert("Could not access your screen. Please try again.");
+            }
+        }
+    }
+    
+
 
     useEffect(() => {
         if (!localStream) {
@@ -105,6 +176,30 @@ function VideoChat() {
 
     }, [localStream, joinid, displayName]); // Fixed: added displayName dependency
 
+    // Handle screen stream changes
+    useEffect(() => {
+        if (screenStream) {
+            console.log("Screen stream available, adding to peer connections");
+            // Add screen tracks to all existing peer connections
+            Object.values(peerConnections.current).forEach(pc => {
+                // Check if screen tracks are already added
+                const senders = pc.getSenders();
+                const hasScreenTrack = senders.some(sender => 
+                    sender.track && sender.track.kind === 'video' && 
+                    (sender.track.label.includes('screen:0:0') )
+                );
+                
+                if (!hasScreenTrack) {
+                    screenStream.getTracks().forEach(track => {
+                        console.log("Adding screen track to peer:", track.kind, track.label);
+                        pc.addTrack(track, screenStream);
+                    });
+                }
+            });
+            screenVideoRef.current.srcObject = screenStream;
+        }
+    }, [screenStream]);
+
     function createPeerConnection(socketId, polite) {
         if (peerConnections.current[socketId]) {
             console.log("the peer connection is already created for the user ", socketId);
@@ -121,6 +216,12 @@ function VideoChat() {
             console.log("the track is ", track.kind)
             pc.addTrack(track, localStream);
         });
+        if (screenStream) {
+            screenStream.getTracks().forEach((track) => {
+                console.log("the track is ", track.kind)
+                pc.addTrack(track, screenStream);
+            });
+        }
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
@@ -135,9 +236,13 @@ function VideoChat() {
             }
         }
         pc.ontrack = (event) => {
-            console.log("the track is ", event.track.kind, "from the user ", socketId);
+            console.log("the track is ", event.track.kind, "from the user ", socketId, "track label:", event.track.label);
+            
+            // Check if this is a screen track
+            const isScreenTrack = event.track.label.includes('screen:0:0');
+            console.log("Is screen track:", isScreenTrack);
+            
             setRemoteStreams((prev) => ({ ...prev, [socketId]: event.streams[0] })); // Fixed: was setRemoteStream
-
         }
 
         pc.onnegotiationneeded = async () => {
@@ -260,7 +365,18 @@ function VideoChat() {
         }
     };
 
-    
+    const screenStreamClick = (screenId) => {
+        if (fullScreenStream === screenId) {
+            setFullScreenStream(null);
+        } else {
+            setFullScreenStream(screenId);
+        }
+    }
+
+    const toggleScreenStream = () => {
+        handleScreenStream(); // Call the main screen sharing function
+    }
+
     const toggleAudio = () => {
         if (localStream) {
             const audioTracks = localStream.getAudioTracks();
@@ -284,7 +400,7 @@ function VideoChat() {
     const renderVideo = (stream, socketId, isLocal) => {
         const videoId = socketId;
         const isFullScreen = fullScreenVideo === videoId;
-        
+        const isFullScreenStream = fullScreenStream === socketId;
         return (
             <div 
                 key={videoId}
@@ -300,7 +416,21 @@ function VideoChat() {
                     // Fullscreen layout with flexbox
                     <div className="w-100 h-100 d-flex">
                         {/* Video container */}
-                        <div className="flex-grow-1 d-flex align-items-center justify-content-center">
+                                <div className="flex-grow-1 d-flex flex-column gap-2 align-items-center justify-content-center">
+                                    {screenStream && isLocal && isFullScreenStream && (
+                                <video
+                                    ref={screenVideoRef}
+                                    autoPlay
+                                    playsInline
+                                    className="rounded"
+                                    style={{
+                                        height: '80vh',
+                                        objectFit: 'contain',
+                                        backgroundColor: '#1f2937',
+                                        border: '2px solid #f59e0b'
+                                    }}
+                                />
+                            )}
                             <video
                                 ref={el => {
                                     if (isLocal) {
@@ -341,25 +471,32 @@ function VideoChat() {
                                 </button>
                             </div>
                             
-                            {/* Bottom section - controls */}
-                            <div className="d-flex flex-column gap-2">
-                                {isLocal && (
-                                    <>
-                                        <button 
-                                            className={`btn ${isAudioEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
-                                            onClick={toggleAudio}
-                                        >
-                                            {isAudioEnabled ? <Mic size={16} /> : <MicOff size={16} />}
-                                        </button>
-                                        <button 
-                                            className={`btn ${isVideoEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
-                                            onClick={toggleVideo}
-                                        >
-                                            {isVideoEnabled ? <Video size={16} /> : <VideoOff size={16} />}
-                                        </button>
-                                    </>
-                                )}
-                            </div>
+                                     {/* Bottom section - controls */}
+                             <div className="d-flex flex-column gap-2">
+                                 {isLocal && (
+                                     <>
+                                         <button 
+                                             className={`btn ${isAudioEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
+                                             onClick={toggleAudio}
+                                         >
+                                             {isAudioEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+                                         </button>
+                                         <button 
+                                             className={`btn ${isVideoEnabled ? 'btn-success' : 'btn-danger'} btn-sm`}
+                                             onClick={toggleVideo}
+                                         >
+                                             {isVideoEnabled ? <Video size={16} /> : <VideoOff size={16} />}
+                                         </button>
+                                         <button 
+                                             className={`btn ${isScreenSharingEnabled ? 'btn-warning' : 'btn-secondary'} btn-sm`}
+                                             onClick={toggleScreenStream}
+                                             title={isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
+                                         >
+                                             {isScreenSharingEnabled ? <MonitorOff size={16} /> : <Monitor size={16} />}
+                                         </button>
+                                     </>
+                                 )}
+                             </div>
                         </div>
                     </div>
                 ) : (
@@ -391,6 +528,8 @@ function VideoChat() {
                             />
                         </div>
                         
+                        
+                        
                         {/* Controls below video */}
                         <div className="d-flex justify-content-between align-items-center p-2 bg-dark">
                             <div className="d-flex gap-2">
@@ -402,9 +541,18 @@ function VideoChat() {
                                         <span className={`badge ${isAudioEnabled ? 'bg-success' : 'bg-danger'}`}>
                                             {isAudioEnabled ? <Mic size={12} /> : <MicOff size={12} />}
                                         </span>
-                                        <span className={`badge ${isVideoEnabled ? 'bg-success' : 'bg-danger'}`}>
-                                            {isVideoEnabled ? <Video size={12} /> : <VideoOff size={12} />}
-                                        </span>
+
+                                                                                <button 
+                                             className={`btn ${isScreenSharingEnabled ? 'btn-success' : 'btn-secondary'} btn-sm`}
+                                             onClick={toggleScreenStream}
+                                             title={isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
+                                         >
+                                             {isScreenSharingEnabled ? <MonitorOff size={12} /> : <Monitor size={12} />}
+                                         </button>
+
+                                         <span className={`badge ${isVideoEnabled ? 'bg-success' : 'bg-danger'}`}>
+                                             {isVideoEnabled ? <Video size={12} /> : <VideoOff size={12} />}
+                                         </span>
                                     </>
                                 )}
                             </div>
@@ -448,6 +596,13 @@ function VideoChat() {
                                 Back To Chats
                             </button>
                             <h4 className="text-white mb-0">Video Chat Room: {joinid}</h4>
+                            {screenStream && (
+                                <div className="d-flex align-items-center gap-2">
+                                    <span className="badge bg-warning text-dark">
+                                        <Monitor size={12} /> Screen Sharing Active
+                                    </span>
+                                </div>
+                            )}
                             <div></div> {/* Spacer for flexbox */}
                         </div>
                     </div>
@@ -471,19 +626,110 @@ function VideoChat() {
                                 {isVideoEnabled ? <Video size={16} /> : <VideoOff size={16} />}
                                 {isVideoEnabled ? 'Stop Video' : 'Start Video'}
                             </button>
+                            <button
+                                className={`btn ${isScreenSharingEnabled ? 'btn-warning' : 'btn-secondary'} d-flex align-items-center gap-2`}
+                                onClick={toggleScreenStream}
+                                title={isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
+                            >
+                                {isScreenSharingEnabled ? <MonitorOff size={16} /> : <Monitor size={16} />}
+                                {isScreenSharingEnabled ? 'Stop Screen Share' : 'Start Screen Share'}
+                            </button>
+                            <button
+                                className="btn btn-info btn-sm"
+                                onClick={() => {
+                                    console.log("Screen stream status:", screenStream);
+                                    console.log("Screen video ref:", screenVideoRef.current);
+                                    console.log("Peer connections:", Object.keys(peerConnections.current));
+                                }}
+                                title="Debug Screen Share"
+                            >
+                                Debug
+                            </button>
                         </div>
                     </div>
                 </div>
 
+                
+
+                {/* Remote Screen Share Display */}
+                {Object.entries(remoteStreams).map(([socketId, stream]) => {
+                    if (!stream) return null;
+                    
+                    // Check if this stream has screen tracks
+                    const hasScreenTrack = stream.getVideoTracks().some(track => 
+                        track.label.includes('screen') || track.label.includes('Screen')
+                    );
+                    
+                    if (!hasScreenTrack) return null;
+                    
+                    return (
+                        <div key={`screen-${socketId}`} className="row mb-4">
+                            <div className="col-12">
+                                <div className="mb-2">
+                                    <h6 className="text-white mb-0">Screen Share from User {socketId?.slice(0, 6)}</h6>
+                                </div>
+                                <div className="position-relative">
+                                    <video
+                                        autoPlay
+                                        playsInline
+                                        className="w-100 rounded"
+                                        style={{
+                                            height: '400px',
+                                            objectFit: 'contain',
+                                            backgroundColor: '#1f2937',
+                                            border: '2px solid #3b82f6'
+                                        }}
+                                        ref={el => {
+                                            if (el) {
+                                                el.srcObject = stream;
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+
                 {/* Video Grid */}
                 <div className="row g-3">
-                    {/* Local Video */}
-                    <div className="col-12 col-md-5 offset-md-1">
-                        <div className="mb-2">
-                            <h6 className="text-white mb-2">Your Video</h6>
-                        </div>
-                        {renderVideo( localStream,"localuser", true)}
-                    </div>
+                                         {/* Local Video */}
+                     <div className="col-12 col-md-5 offset-md-1">
+                         <div className="mb-2">
+                             <h6 className="text-white mb-2">Your Video</h6>
+                         </div>
+                         {renderVideo( localStream,"localuser", true)}
+                         
+                         {/* Screen Share Preview for Local User */}
+                         {screenStream && (
+                             <div className="mt-3">
+                                 <div className="mb-2 d-flex justify-content-between align-items-center">
+                                     <h6 className="text-white mb-0">Your Screen Share</h6>
+                                     <button 
+                                         className="btn btn-danger btn-sm"
+                                         onClick={toggleScreenStream}
+                                         title="Stop Screen Share"
+                                     >
+                                         <MonitorOff size={14} /> Stop
+                                     </button>
+                                 </div>
+                                 <div className="position-relative">
+                                     <video
+                                         ref={screenVideoRef}
+                                         autoPlay
+                                         playsInline
+                                         className="w-100 rounded"
+                                         style={{
+                                             height: '200px',
+                                             objectFit: 'contain',
+                                             backgroundColor: '#1f2937',
+                                             border: '2px solid #f59e0b'
+                                         }}
+                                     />
+                                 </div>
+                             </div>
+                         )}
+                     </div>
 
                     {/* Remote Videos */}
                     {Object.entries(remoteStreams).map(([socketId, stream], index) => {

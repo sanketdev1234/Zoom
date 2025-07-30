@@ -8,6 +8,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./ScoketChat.css";
 import VideoCallLauncher from "./VideoCallLauncher";
+import adapter from 'webrtc-adapter';
+
 const socket=io("http://localhost:8080",{withCredentials:true});
 
 function SocketChat(){
