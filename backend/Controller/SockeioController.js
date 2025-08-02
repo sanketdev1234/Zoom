@@ -3,10 +3,22 @@ const cors=require("cors");
 const { set } = require('mongoose');
 const userrooms=new Map();
 const userset=new Set();
+const MediaSoupServer=require("../config/mediasoupServer");
+const mediasoupserver=new MediaSoupServer();
 
-// Add video room management
+mediasoupserver.init().then(()=>{
+    console.log("Mediasoup server initialized");
+}).catch((error)=>{
+    console.error("Error initializing mediasoup server:",error);
+});
+
+// Add video room management for p2p
 const videoRooms = new Map(); // { roomId: Set(socketId) }
 const peerConnections = new Map(); // { socketId: { roomId, displayName } }
+
+//Add video room managment for sfu
+const videoRoomsSFU=new Map();
+const peerConnectionsSFU=new Map();
 
 module.exports.SocketController = (server) => {
 const io = new Server(server,{
@@ -65,7 +77,7 @@ io.on("connection",(socket)=>{
         io.to(joinid).emit('Online Users',Array.from(userset));
     });
     
-    // ========== VIDEO SIGNALING EVENTS ==========
+    // ========== VIDEO SIGNALING EVENTS BOTH FOR PEER TO PEER  ==========
     
     // Handle joining video room
     socket.on('join-video-room', ({ roomId, displayName }) => {
@@ -105,21 +117,31 @@ io.on("connection",(socket)=>{
     });
 
     // Handle leaving video room
-    socket.on('leave-video-room', ({ roomId }) => {
-        socket.leave(roomId);
-        
+    socket.on('leave-video-room', async({ roomId }) => {
+        console.log(`User ${socket.id} leaving video room ${roomId}`);
+        try{
+
+            await mediasoupserver.leaveRoom(roomId,socket.id);//for sfu
+            socket.leave(roomId);//for p2p
         if (videoRooms.has(roomId)) {
             videoRooms.get(roomId).delete(socket.id);
         }
-        
+
         peerConnections.delete(socket.id);
         
         // Notify others in the room
         socket.to(roomId).emit('user-left-video', { socketId: socket.id });
         
         console.log(`User ${socket.id} left video room ${roomId}`);
+    }
+    catch(error){
+        console.error("Error leaving video room:",error);
+        throw error;
+    }
     });
     
+
+
     //disconection event 
     socket.on('disconnect',()=>{
         console.log('User disconnected:', socket.id);
@@ -147,8 +169,132 @@ io.on("connection",(socket)=>{
         }
     });
 
+    // ========== MEDIASOUP EVENTS ==========
+
+    socket.on("join-sfu-video-room",async({roomId,displayName})=>{
+    try{
+    const peer=await mediasoupserver.joinRoom(roomId,socket.id,displayName);
+
+        console.log("peer",peer);
+    
+        if(!videoRoomsSFU.has(roomId)){
+        videoRoomsSFU.set(roomId,new Set());
+        }
+        videoRoomsSFU.get(roomId).add(socket.id);
+        peerConnectionsSFU.set(socket.id,{roomId,displayName});
+
+        //notify other users in the room
+        socket.to(roomId).emit("user-joined-sfu-video",{socketId:socket.id,displayName})
+
+
+        //send the rtp capabilities to the peer
+        const rtpCapabilities=await mediasoupserver.getRouterRtpCapabilities(roomId);
+        socket.emit("router-rtp-capabilities",{rtpCapabilities});
+        //send the producers to the peer
+        const producers=await mediasoupserver.getProducers(roomId,socket.id);
+        socket.emit("existing-producers", { producers });
+        console.log(`User ${displayName} joined sfu video room ${roomId}`);
+    }
+    catch(error){
+        console.error("Error joining sfu video room:",error);
+        socket.emit("sfu-error",{
+            errorMessage:"Failed to join sfu video room"
+        });
+    }
+    });
+
+    socket.on("create-transport",async({roomId,direction})=>{
+        try{
+        const transport=await mediasoupserver.createWebRtcTransport(roomId,socket.id,direction);
+        console.log("transport",transport);
+        socket.emit("transport-created",{direction,transport});
+        }
+        catch(error){
+            console.error("Error creating transport:",error);
+            socket.emit("sfu-error",{
+                errorMessage:"Failed to create transport"
+            });
+        }
+    });
+
+socket.on("connect-transport",async({roomId,direction,dtlsParameters})=>{
+try{
+await mediasoupserver.connectTransport(roomId,socket.id,direction,dtlsParameters);
+socket.emit("transport-connected",{direction});
+}
+catch(error){
+    console.error("Error connecting transport:",error);
+    socket.emit("sfu-error",{
+        errorMessage:"Failed to connect transport"
+    });
+}
+    });
+
+socket.on("produce",async({roomId,kind,rtpParameters})=>{
+    try{
+    const {id}=await mediasoupserver.produce(roomId,socket.id,kind,rtpParameters);
+    console.log("producer created",id);
+    socket.emit("produced",{id,kind});
+    socket.to(roomId).emit("new-producer",{produceId:id,peerId:socket.id,kind});
+    }
+    catch(error){
+        console.error("Error producing media:",error);
+        socket.emit("sfu-error",{
+            errorMessage:"Failed to produce media"
+        });
+    }
+});
+
+socket.on("consume",async({roomId,producerId,rtpCapabilities})=>{
+    try{
+const consumer=await mediasoupserver.consume(roomId,socket.idproducerId,rtpCapabilities);
+socket.emit("consumed",{consumer});
+    }
+    catch(error){
+        console.error("Error creating consumer:",error);
+        socket.emit("sfu-error",{
+            errorMessage:"Failed to consume media"
+        });
+    }
+});
+
+
+socket.on("new-consumer",async({roomId,producedId,rtpCapabilities})=>{
+    try{
+const consumer=await mediasoupserver.consume(roomId,socket.id,producedId,rtpCapabilities);
+socket.emit("new-consumer",{consumer});
+    }
+    catch(error){
+        console.error("Error creating consumer:",error);
+        socket.emit("sfu-error",{
+            errorMessage:"Failed to create new consumer"
+        });
+    }
+});
+
+
+socket.on("close-producer",async({roomId,producerId})=>{
+    try{
+        await mediasoupserver.closeProducer(roomId,socket.id,producerId);
+        socket.to(roomId).emit("producer-closed",{producerId});
+    }
+    catch(error){
+        console.error("Error closing producer:",error);
+    }
+});
+
+socket.on("close-consumer",async({roomId,consumerId})=>{
+    try{
+        await mediasoupserver.closeConsumer(roomId,socket.id,consumerId);
+    }
+    catch(error){
+        console.error("Error closing consumer:",error);
+    }
+});
+
+
 
 });
 return io;
-}
+};
 
