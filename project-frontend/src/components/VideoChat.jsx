@@ -73,11 +73,12 @@ function VideoChat() {
         socket.on("all-video-users", ({ users }) => {
             console.log("the all users in video calling room are:", users)
             users.forEach((socketId) => {
-                createPeerConnection(socketId, false);
+                createPeerConnection(socketId, false); //B is making peer connection to A (A is polite) ,  B is new user joining the room who is impolite
             })
         });
+
         socket.on("video-signal", async ({ sender, data }) => {
-            console.log("the signal is ", data.type, "from ", sender);
+            console.log("the signal is ", data.type, "from ", sender); // B receiving signal from A
             await handleSignaling(sender, data);
         });
         socket.on("user-left-video", ({ socketId }) => {
@@ -97,6 +98,7 @@ function VideoChat() {
 
     }, [localStream, joinid, displayName]); // Fixed: added displayName dependency
 
+
     function createPeerConnection(socketId, polite) {
         if (peerConnections.current[socketId]) {
             console.log("the peer connection is already created for the user ", socketId);
@@ -105,16 +107,16 @@ function VideoChat() {
         const pc = new RTCPeerConnection({
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
         })
-        politeRef.current[socketId] = polite;
+        politeRef.current[socketId] = polite; // it means suppose we have two peer A and B , A is polite and B is impolite , peer calling this function is A , so A is polite to B
         makingoffer.current[socketId] = false;
         ignoreoffer.current[socketId] = false;
 
-        localStream.getTracks().forEach((track) => { // Fixed: was getTrack() - should be getTracks()
+        localStream.getTracks().forEach((track) => { // Fixed: was getTrack() - should be getTracks() , suppose we have two peer A and B , A is polite and B is impolite , peer calling this function is A , so A's local stream tracks are added to peer connection
             console.log("the track is ", track.kind)
             pc.addTrack(track, localStream);
         });
 
-        pc.onicecandidate = (event) => {
+        pc.onicecandidate = (event) => { // suppose we have two peer A and B , peer calling this function is A and A is sending its ice candidate to B
             if (event.candidate) {
                 console.log("sending the candidate to the user ", socketId);
                 socket.emit("video-signal", {
@@ -126,6 +128,7 @@ function VideoChat() {
                 })
             }
         }
+
         pc.ontrack = (event) => {
             console.log("the track is ", event.track.kind, "from the user ", socketId);
             setRemoteStreams((prev) => ({ ...prev, [socketId]: event.streams[0] })); // Fixed: was setRemoteStream
@@ -135,14 +138,14 @@ function VideoChat() {
         pc.onnegotiationneeded = async () => {
             try {
                 console.log("the negotiation is needed", socketId);
-                makingoffer.current[socketId] = true;
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                socket.emit("video-signal", {
+                makingoffer.current[socketId] = true; //A is making offer to B
+                const offer = await pc.createOffer(); 
+                await pc.setLocalDescription(offer); // suppose we have two peer A and B , peer calling this function is A and A is sending its offer to B
+                socket.emit("video-signal", { 
                     target: socketId,
                     data: {
                         type: "offer",
-                        sdp: pc.localDescription,
+                        sdp: pc.localDescription, // A is sending its offer sdp to B and B will set it as remote description and A set its local description
                     }
                 });
             }
@@ -154,7 +157,7 @@ function VideoChat() {
                 makingoffer.current[socketId] = false;
             }
         }
-        peerConnections.current[socketId] = pc;
+        peerConnections.current[socketId] = pc; // A to be connected to B
         console.log("Peer connection created for:", socketId);
     }
 
