@@ -73,13 +73,13 @@ function VideoChat() {
         socket.on("all-video-users", ({ users }) => {
             console.log("the all users in video calling room are:", users)
             users.forEach((socketId) => {
-                createPeerConnection(socketId, false); //B is making peer connection to A (A is polite) ,  B is new user joining the room who is impolite
+                createPeerConnection(socketId, false); //B is making peer connection to A (A is polite) ,  B is new user joining the room who is impolite , and think in reverse as we do A to B connection in createPeerConnection function called by A which is existing user
             })
         });
 
         socket.on("video-signal", async ({ sender, data }) => {
             console.log("the signal is ", data.type, "from ", sender); // B receiving signal from A
-            await handleSignaling(sender, data);
+            await handleSignaling(sender, data); // this means sdp arrives from signaling server. eg A send  its local description and sdp to B.
         });
         socket.on("user-left-video", ({ socketId }) => {
             console.log("the user is ", socketId, "has left the video room");
@@ -111,6 +111,9 @@ function VideoChat() {
         makingoffer.current[socketId] = false;
         ignoreoffer.current[socketId] = false;
 
+
+
+        
         localStream.getTracks().forEach((track) => { // Fixed: was getTrack() - should be getTracks() , suppose we have two peer A and B , A is polite and B is impolite , peer calling this function is A , so A's local stream tracks are added to peer connection
             console.log("the track is ", track.kind)
             pc.addTrack(track, localStream);
@@ -157,8 +160,10 @@ function VideoChat() {
                 makingoffer.current[socketId] = false;
             }
         }
-        peerConnections.current[socketId] = pc; // A to be connected to B
+  
+                      peerConnections.current[socketId] = pc; // A to be connected to B
         console.log("Peer connection created for:", socketId);
+        
     }
 
     async function handleSignaling(sender, data) { // Fixed: was handleSignaling({sender,data})
