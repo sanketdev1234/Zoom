@@ -1,3 +1,4 @@
+require("dotenv").config({path:require("path").resolve(__dirname,"../.env")});
 const mongoose=require("mongoose");
 const bcrypt=require("bcrypt");
 const passwordValidator=require("../Utilities/passwordconstrain");
@@ -31,6 +32,11 @@ required: [true, "Your date of birth is required"],
     gender:{
         type:String,
 required: [true, "Your gender is required"],
+    }
+    ,
+    profile_picture:{
+        type:String,
+        default:process.env.DEFAULT_PHOTO_URL,
     }
 });
 
