@@ -4,9 +4,8 @@ const comment=require("./comment");
 const Schema= mongoose.Schema;
 
 const PostSchema=new Schema({
-    user:{
+    owner:{
         type:Types.Schema.ObjectId,
-        required:true,
         ref:"user"
     },
     comments:

@@ -28,9 +28,13 @@ const EducationSchema=new Schema({
     to: {
         type: Date
     },
+    current: {
+        type: Boolean,
+        default: false
+    },
     // Grades or GPA (optional)
     gpa: {
-        type: String
+        type: Number,
     },
     // A brief note about activities or societies
     description: {
@@ -77,9 +81,8 @@ const WorkSchema=new Schema({
 
 
 const ProfileSchema=new Schema({
-    user:{
+    owner:{
         type:Schema.Types.ObjectId,
-        required:true,
         ref:"user",
         unique: true
     },
@@ -104,7 +107,7 @@ const ProfileSchema=new Schema({
 
     social: {
         twitter: { type: String },
-        facebook: { type: String },
+        github: { type: String },
         linkedin: { type: String } // You can store the user's actual LinkedIn URL here
     },
     Education:

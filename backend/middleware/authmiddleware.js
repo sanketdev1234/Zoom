@@ -4,6 +4,8 @@ const jwt=require("jsonwebtoken");
 const mongoose=require("mongoose");
 const meeting=require("../model/meeting");
 const chat=require("../model/chat");
+const profile=require("../model/profile");
+
 module.exports.userverification=async(req,res,next)=>{
     const token = req.cookies.token;
 
@@ -76,3 +78,29 @@ console.log(err);
 return res.send(err);
 }
 }
+
+module.exports.iscorrect_owner_profile=async(req,res,next)=>{
+    const profileid=req.params.profileId;
+    const current_user_id=req.user._id;
+    console.log(current_user_id);
+    try{
+    const user_profile=await profile.findById(profileid).populate("owner");
+    const correct_owner_profile=user_profile.owner._id;
+    console.log(correct_owner_profile);
+
+    if(current_user_id.toString()===correct_owner_profile.toString()){
+        console.log("correct owner authorise!");
+        next();
+    }
+    else{
+    return res.send(401).send("unauthorised user");
+    }
+
+    }
+    catch(err){
+        console.log("error:",err);
+        return res.send(err);
+    }
+}
+
+// handle the error in catch block use return next(err) later recheck for betterment;

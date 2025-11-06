@@ -4,14 +4,12 @@ const post=require("./post");
 const Schema= mongoose.Schema;
     
 const CommentSchema=new Schema({
-    user:{
+    Author:{
         type:Types.Schema.ObjectId,
-        required:true,
         ref:"user"
     },
     post:{
         type:Types.Schema.ObjectId,
-        required:true,
         ref:"post"
     },
     text:{
