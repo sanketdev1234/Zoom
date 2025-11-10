@@ -35,8 +35,14 @@ required: [true, "Your gender is required"],
     }
     ,
     profile_picture:{
-        type:String,
-        default:process.env.DEFAULT_PHOTO_URL,
+        url :{
+            type:String,
+            default:process.env.DEFAULT_PHOTO_URL
+        },
+        file_id:{
+            type:String,
+            default:"default_name"
+        }
     }
 });
 

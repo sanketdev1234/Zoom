@@ -23,7 +23,8 @@ module.exports.signup=async(req,res,next)=>{
 
         if(req.file){
           const photopath=req.file.path;
-          newuser.profile_picture=photopath;
+          newuser.profile_picture.url=photopath;
+          newuser.profile_picture.file_id=req.file.filename;
         }
         
         await newuser.save();

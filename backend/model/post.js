@@ -27,10 +27,17 @@ const PostSchema=new Schema({
         required: true,
     },
 
-    // Optional: URL to an image or video associated with the post (e.g., from Cloudinary)
-    media_url: {
-        type: String,
-        default:null
+
+    media:{
+        // Optional: URL to an image or video associated with the post (e.g., from Cloudinary)
+        media_url: {
+            type: String,
+            default:null
+        },
+        media_id:{
+            type:String,
+            default:null,
+        },
     },
     timestamps: true
 });

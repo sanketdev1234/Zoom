@@ -42,7 +42,7 @@ module.exports.iscorrect_owner=async(req,res,next)=>{
         next();
     }
     else {
-        return res.status(401).send("unauthorized");
+        return res.status(403).send("unauthorized");
     }
     }
     catch(err){
@@ -84,8 +84,8 @@ module.exports.iscorrect_owner_profile=async(req,res,next)=>{
     const current_user_id=req.user._id;
     console.log(current_user_id);
     try{
-    const user_profile=await profile.findById(profileid).populate("owner");
-    const correct_owner_profile=user_profile.owner._id;
+    const user_profile=await profile.findById(profileid); // wwe already store the user id in owner field of profile schema
+    const correct_owner_profile=user_profile.owner;
     console.log(correct_owner_profile);
 
     if(current_user_id.toString()===correct_owner_profile.toString()){
@@ -93,7 +93,7 @@ module.exports.iscorrect_owner_profile=async(req,res,next)=>{
         next();
     }
     else{
-    return res.send(401).send("unauthorised user");
+    return res.status(403).send("unauthorised user");
     }
 
     }

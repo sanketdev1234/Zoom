@@ -62,6 +62,24 @@ const profile_validator=joi.object({
 
 });
 
-module.exports={user_validator,meeting_validator,post_validator,profile_validator};
+
+
+const profile_validator_update=joi.object({
+    bio:joi.string().allow(null, '').optional(),
+    headline:joi.string().optional(),
+    location:joi.string().allow(null, '').optional(),
+    social:joi.object({
+        twitter:joi.string().uri().allow(null, '').optional(),
+        github:joi.string().uri().allow(null, '').optional(),
+        linkedin:joi.string().uri().allow(null, '').optional()
+    }).optional(),
+// The entire social object can be omitted
+
+    // 3. Arrays: The array itself is optional, but items inside must be valid if the array is provided
+    Education:joi.array().items(Education).optional(),
+    Experience:joi.array().items(Experience).optional()
+});
+
+module.exports={user_validator,meeting_validator,post_validator,profile_validator,profile_validator_update};
 
 
