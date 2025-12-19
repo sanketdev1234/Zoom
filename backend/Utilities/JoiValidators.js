@@ -20,10 +20,6 @@ const meeting_validator=joi.object({
     isEnded:joi.boolean().allow(null, '')
 });
 
-const post_validator=joi.object({
-    text:joi.string().required(),
-    media_url:joi.string().uri().allow(null, '')
-});
 
 
     const Education=joi.object({
@@ -80,6 +76,6 @@ const profile_validator_update=joi.object({
     Experience:joi.array().items(Experience).optional()
 });
 
-module.exports={user_validator,meeting_validator,post_validator,profile_validator,profile_validator_update};
+module.exports={user_validator,meeting_validator,profile_validator,profile_validator_update};
 
 
