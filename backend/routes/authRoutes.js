@@ -6,7 +6,7 @@ const userstatus=require("../Controller/authcontroller").userstatus;
 const logout=require("../Controller/authcontroller").logout;
 
 const multer=require("multer");
-const {storage,cloudinary}=require("../config/cloudinary_config");
+const {storage}=require("../config/cloudinary_config");
 const upload=multer({storage});
 
 router.post("/signup",upload.single("profile-picture"),signup);

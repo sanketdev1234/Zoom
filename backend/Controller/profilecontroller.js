@@ -1,6 +1,7 @@
 const profile=require("../model/profile");
 const user = require("../model/user");
 const validators=require("../Utilities/JoiValidators");
+const PDFDocument = require('pdfkit');
 
 module.exports.getProfile=async(req,res)=>{
 const userid=req.params.userId;
@@ -103,6 +104,8 @@ module.exports.deleteProfile=async (req,res)=>{
         console.log("deleted profile is :",profile_delete);
         // This method finds the document, deletes it, and returns the deleted document, which is perfect for confirmation.
 
+        // also delete the all post and comments and connection created by thid user
+        
         res.send(`profile deleted successfully: ${profile_delete}`);
         
         const current_user_id=req.user._id;
@@ -125,5 +128,46 @@ module.exports.deleteProfile=async (req,res)=>{
     catch(error){
         console.log("err:",error);
         return res.send(error);
+    }
+};
+
+module.exports.downloadProfilePdf = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        // Fetch profile and populate user details (name, email)
+        const userProfile = await profile.findOne({ owner: userId }).populate("owner");
+
+        if (!userProfile) {
+            return res.status(404).send("Profile not found");
+        }
+
+        const doc = new PDFDocument({ margin: 50 });
+
+        // Set Headers for Streaming
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${userProfile.owner.full_name}_Resume.pdf"`);
+
+        doc.pipe(res);
+
+        // --- PDF CONTENT GENERATION ---
+        doc.fontSize(25).text(userProfile.owner.full_name, { align: 'center' });
+        doc.fontSize(12).text(userProfile.headline, { align: 'center' });
+        doc.moveDown();
+        
+        doc.fontSize(14).text("Professional Bio", { underline: true });
+        doc.fontSize(10).text(userProfile.bio || "No bio provided.");
+        doc.moveDown();
+
+        // Loop through Experience
+        doc.fontSize(14).text("Experience", { underline: true });
+        userProfile.Experience.forEach(exp => {
+            doc.fontSize(11).text(`${exp.title} at ${exp.company}`, { bullet: true });
+            doc.fontSize(9).text(`${exp.from.toDateString()} - ${exp.current ? 'Present' : exp.to?.toDateString()}`);
+        });
+
+        doc.end(); // This triggers the streaming completion
+    } catch (err) {
+        console.error("PDF Generation Error:", err);
+        res.status(500).send("Error generating PDF");
     }
 };
