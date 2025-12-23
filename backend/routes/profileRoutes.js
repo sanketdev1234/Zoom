@@ -1,10 +1,10 @@
 const router=require("express").Router({mergerParams:true});
 
 const profileController=require("../Controller/profilecontroller");
-const iscorrect_owner_profile=require("..//middleware/authmiddleware").iscorrect_owner_profile
+const iscorrect_owner_profile=require("../middleware/authmiddleware").iscorrect_owner_profile
 
 const multer=require("multer");
-const {cloudinary , storage}=require("../config/cloudinary_config");
+const {storage}=require("../config/cloudinary_config");
 const upload=multer({storage});
 
 

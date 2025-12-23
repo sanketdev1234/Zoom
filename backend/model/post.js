@@ -5,19 +5,19 @@ const Schema= mongoose.Schema;
 
 const PostSchema=new Schema({
     owner:{
-        type:Types.Schema.ObjectId,
+        type:Schema.Types.ObjectId,
         ref:"user"
     },
     comments:
         [{
-        type:Types.Schema.ObjectId,
+        type:Schema.Types.ObjectId,
         ref:"comment"
     }
 ],
 
     likeby:[
 {
-    type:Types.Schema.ObjectId,
+    type:Schema.Types.ObjectId,
     ref:"user"
 }
     ],
@@ -39,8 +39,7 @@ const PostSchema=new Schema({
             default:null,
         },
     },
-    timestamps: true
-});
+},{timestamps:true});
 
 const post=mongoose.model("post",PostSchema);
 module.exports=post;

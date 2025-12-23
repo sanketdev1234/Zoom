@@ -16,7 +16,9 @@ const authRoutes=require("./routes/authRoutes");
 const meetingroute=require("./routes/meetroute");
 const chatroute=require("./routes/chatroute");
 const profileroute=require("./routes/profileRoutes");
- const userverification=require("./middleware/authmiddleware").userverification;
+const userverification=require("./middleware/authmiddleware").userverification;
+const postroute=require("./routes/postRoute");
+const commentroute=require("./routes/commentRoute");
 
 
 const server = createServer(app);
@@ -68,6 +70,8 @@ app.use("/auth",authRoutes);
 app.use("/meeting",userverification,meetingroute);
 app.use("/meeting/:meetid/chat",userverification,chatroute);
 app.use("/profile",userverification,profileroute);
+app.use("/post",userverification,postroute);
+app.use("/post/:postId/comment",userverification,commentroute);
 
 
   // it is for the express error
