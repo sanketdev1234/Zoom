@@ -19,7 +19,7 @@ const profileroute=require("./routes/profileRoutes");
 const userverification=require("./middleware/authmiddleware").userverification;
 const postroute=require("./routes/postRoute");
 const commentroute=require("./routes/commentRoute");
-
+const connectionroute=require("./routes/connectionroute");
 
 const server = createServer(app);
 
@@ -72,7 +72,7 @@ app.use("/meeting/:meetid/chat",userverification,chatroute);
 app.use("/profile",userverification,profileroute);
 app.use("/post",userverification,postroute);
 app.use("/post/:postId/comment",userverification,commentroute);
-
+app.use("/connection",userverification,connectionroute);
 
   // it is for the express error
   app.use((err , req, res ,next )=>{

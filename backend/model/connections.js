@@ -16,10 +16,12 @@ const ConnectionSchema=new Schema({
     },
     status:{
         type:String,
-        enum:["pending","accepted","NOTKNOWN"],
-        default:"NOTKNOWN"
+        enum:["pending","accepted","decline"],
+        default:"pending"
     }
-});
+},{timestamps:true});
 
+
+ConnectionSchema.index({sender:1,receiver:1},{unique:true})
 const connection=mongoose.model("connection",ConnectionSchema);
 module.exports=connection;
