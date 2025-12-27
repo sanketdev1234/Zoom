@@ -20,7 +20,7 @@ const userverification=require("./middleware/authmiddleware").userverification;
 const postroute=require("./routes/postRoute");
 const commentroute=require("./routes/commentRoute");
 const connectionroute=require("./routes/connectionroute");
-
+const extraroutes=require("./routes/extraroutes");
 const server = createServer(app);
 
 const port=process.env.PORT || 8080;
@@ -73,6 +73,7 @@ app.use("/profile",userverification,profileroute);
 app.use("/post",userverification,postroute);
 app.use("/post/:postId/comment",userverification,commentroute);
 app.use("/connection",userverification,connectionroute);
+app.use("/features",userverification,extraroutes);
 
   // it is for the express error
   app.use((err , req, res ,next )=>{
