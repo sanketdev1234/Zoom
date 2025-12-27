@@ -4,6 +4,7 @@ const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
 const createtoken=require("../Utilities/secreattoken");
 
+
 module.exports.signup=async(req,res,next)=>{
     try{
 
@@ -20,6 +21,13 @@ module.exports.signup=async(req,res,next)=>{
     }
     else {
         const newuser=  new user({email:email , display_name:display_name,password:password,full_name:full_name,gender:gender,date_of_birth:date_of_birth});
+
+        if(req.file){
+          const photopath=req.file.path;
+          newuser.profile_picture.url=photopath;
+          newuser.profile_picture.file_id=req.file.filename;
+        }
+        
         await newuser.save();
         console.log(newuser);
         const token=createtoken(newuser._id);

@@ -4,6 +4,10 @@ const jwt=require("jsonwebtoken");
 const mongoose=require("mongoose");
 const meeting=require("../model/meeting");
 const chat=require("../model/chat");
+const profile=require("../model/profile");
+const post=require("../model/post")
+const comment=require("../model/comment")
+
 module.exports.userverification=async(req,res,next)=>{
     const token = req.cookies.token;
 
@@ -40,7 +44,7 @@ module.exports.iscorrect_owner=async(req,res,next)=>{
         next();
     }
     else {
-        return res.status(401).send("unauthorized");
+        return res.status(403).send("unauthorized");
     }
     }
     catch(err){
@@ -76,3 +80,84 @@ console.log(err);
 return res.send(err);
 }
 }
+
+module.exports.iscorrect_owner_profile=async(req,res,next)=>{
+    const profileid=req.params.profileId;
+    const current_user_id=req.user._id;
+    console.log(current_user_id);
+    try{
+    const user_profile=await profile.findById(profileid); // wwe already store the user id in owner field of profile schema
+    const correct_owner_profile=user_profile.owner;
+    console.log(correct_owner_profile);
+
+    if(current_user_id.toString()===correct_owner_profile.toString()){
+        console.log("correct owner authorise!");
+        next();
+    }
+    else{
+    return res.status(403).send("unauthorised user");
+    }
+
+    }
+    catch(err){
+        console.log("error:",err);
+        return res.send(err);
+    }
+}
+
+
+
+module.exports.iscorrect_owner_post=async(req,res,next)=>{
+    const postid=req.params.postId;
+    const current_user_id=req.user._id;
+    console.log(current_user_id);
+    try{
+    const user_post=await post.findById(postid); // wwe already store the user id in owner field of profile schema
+    const correct_owner_post=user_post.owner;
+    console.log(correct_owner_post);
+
+    if(current_user_id.toString()===correct_owner_post.toString()){
+        console.log("correct owner authorise!");
+        next();
+    }
+    else{
+    return res.status(403).send("unauthorised user");
+    }
+
+    }
+    catch(err){
+        console.log("error:",err);
+        return res.send(err);
+    }
+}
+
+
+
+
+module.exports.iscorrect_owner_comment=async(req,res,next)=>{
+    const commentid=req.params.commentId;
+    const current_user_id=req.user._id;
+    console.log(current_user_id);
+    try{
+    const user_comment=await comment.findById(commentid); // wwe already store the user id in owner field of profile schema
+    const correct_owner_comment=user_comment.Author;
+    console.log(correct_owner_comment);
+
+    if(current_user_id.toString()===correct_owner_comment.toString()){
+        console.log("correct owner authorise!");
+        next();
+    }
+    else{
+    return res.status(403).send("unauthorised user");
+    }
+
+    }
+    catch(err){
+        console.log("error:",err);
+        return res.send(err);
+    }
+}
+
+
+
+// handle the error in catch block use return next(err) later recheck for betterment;

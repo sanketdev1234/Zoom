@@ -7,7 +7,7 @@ import Signup from "./Signup"
 import Showmeetdetail from "./Showmeetdetail"
 import Userdashboard from "./Userdashboard"
 import ScoketChat from "./ScoketChat"
-import VideoChat from "./VideoChat"
+// import VideoChat from "./VideoChat"
 import Contactsanket from "./Contactsanket"
 import Joinmeeting from "./Joinmeet";
 import NotFound from "./Notfound"
@@ -42,7 +42,7 @@ function PageWrapper({ children }) {
           <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
           <Route path="/meet/:id/detail" element={<PageWrapper><Showmeetdetail /></PageWrapper>} />
           <Route path="/ongoingmeet/:meetid/:joinid" element={<PageWrapper><ScoketChat /></PageWrapper>} />
-          <Route path="/videomeet/:meetid/:joinid" element={<PageWrapper><VideoChat /></PageWrapper>} />
+          {/* <Route path="/videomeet/:meetid/:joinid" element={<PageWrapper><VideoChat /></PageWrapper>} /> */}
           <Route path="/contact" element={<PageWrapper><Contactsanket /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
   

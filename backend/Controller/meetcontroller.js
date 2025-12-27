@@ -4,6 +4,7 @@ const user=require("../model/user")
 const chat=require("../model/chat");
 const mongoose=require("mongoose");
 
+
 module.exports.getallmeeting=async(req,res)=>{
     try{
         console.log(req.user._id);

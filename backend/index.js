@@ -15,10 +15,12 @@ const  SocketController  = require('./Controller/SockeioController').SocketContr
 const authRoutes=require("./routes/authRoutes");
 const meetingroute=require("./routes/meetroute");
 const chatroute=require("./routes/chatroute");
-
-
-
-
+const profileroute=require("./routes/profileRoutes");
+const userverification=require("./middleware/authmiddleware").userverification;
+const postroute=require("./routes/postRoute");
+const commentroute=require("./routes/commentRoute");
+const connectionroute=require("./routes/connectionroute");
+const extraroutes=require("./routes/extraroutes");
 const server = createServer(app);
 
 const port=process.env.PORT || 8080;
@@ -65,10 +67,13 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth",authRoutes);
-app.use("/meeting",meetingroute);
-app.use("/meeting/:meetid/chat",chatroute);
-
-
+app.use("/meeting",userverification,meetingroute);
+app.use("/meeting/:meetid/chat",userverification,chatroute);
+app.use("/profile",userverification,profileroute);
+app.use("/post",userverification,postroute);
+app.use("/post/:postId/comment",userverification,commentroute);
+app.use("/connection",userverification,connectionroute);
+app.use("/features",userverification,extraroutes);
 
   // it is for the express error
   app.use((err , req, res ,next )=>{
