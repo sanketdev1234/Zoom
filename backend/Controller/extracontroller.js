@@ -1,6 +1,6 @@
 const profile=require("../model/profile");
 const connection=require("../model/connections");
-
+const post=require("../model/post")
 module.exports.search_by_profile=async(req,res)=>{
     const {query}=req.query;
     try{
@@ -48,3 +48,35 @@ module.exports.suggestions=async(req,res)=>{
         return res.send(error);
     }
 }
+
+
+module.exports.get_personalized_feed = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Get IDs of all accepted connections
+        const friendsDocs = await connection.find({
+            $or: [{ sender: userId }, { receiver: userId }],
+            status: "accepted"
+        });
+
+        // 2. Create an array of IDs (Friends + Yourself)
+        const followedIds = friendsDocs.map(conn => 
+            conn.sender.toString() === userId.toString() ? conn.receiver : conn.sender
+        );
+        followedIds.push(userId); 
+
+        // 3. Find posts from anyone in that list
+        const feed = await post.find({ owner: { $in: followedIds } })
+            .sort({ createdAt: -1 }) // Newest first
+            .populate("owner")
+            .populate({
+                path: "comments",
+                populate: { path: "Author" }
+            });
+
+        res.status(200).json(feed);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};
