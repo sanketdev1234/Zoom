@@ -4,8 +4,8 @@ import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import backgroundImg from '../assets/background.jpg';
-
+import backgroundImg from '../../assets/background.jpg';
+import  S from "../../assets/S.webp"
 function Signup() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -15,8 +15,10 @@ function Signup() {
     password: '',
     confirmPassword: '',
     date_of_birth: '',
-    gender: ''
+    gender: '',
+    profile_picture:''
   });
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({
@@ -39,6 +41,14 @@ function Signup() {
       noSpaces: !/\s/.test(password)
     };
   };
+
+  const handleFileChange=(e)=>{
+    const file=e.target.files[0];
+    if(file){
+      setFormData((prev)=>({...prev,profile_picture:file}))
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -109,14 +119,20 @@ function Signup() {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('/auth/signup', {
-        display_name: formData.display_name,
-        full_name: formData.full_name,
-        email: formData.email,
-        password: formData.password,
-        date_of_birth: formData.date_of_birth,
-        gender: formData.gender
-      }, { withCredentials: true });
+    const data=new FormData();
+    
+    data.append("display_name",formData.display_name);
+    data.append("full_name",formData.full_name);
+    data.append("email",formData.email);
+    data.append("password",formData.password);
+    data.append("date_of_birth",formData.date_of_birth);
+    data.append("gender",formData.gender);
+    
+    if(formData.profile_picture){
+        data.append("profile_picture",formData.profile_picture);
+    }
+
+      const response = await axios.post('/auth/signup', data, { headers:{'Content-Type': 'multipart/form-data' },withCredentials: true });
 
       if (response.status === 201) {
         toast.success('Signup successful! Please proceed for final login.');
@@ -229,7 +245,52 @@ function Signup() {
               )}
             </div>
           </div>
-
+{/* Profile Picture Upload Section */}
+<div className="text-center mb-4">
+  <div style={{ position: 'relative', display: 'inline-block' }}>
+<img
+      src={previewUrl  || S} // Default placeholder
+      alt="Profile Preview"
+      style={{
+        width: '100px',
+        height: '100px',
+        borderRadius: '50%',
+        objectFit: 'cover',
+        border: '3px solid #6366f1',
+        padding: '2px'
+      }}
+    />
+    <label 
+      htmlFor="profile_picture" 
+      style={{
+        position: 'absolute',
+        bottom: '0',
+        right: '0',
+        background: '#6366f1',
+        color: 'white',
+        borderRadius: '50%',
+        width: '32px',
+        height: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+      }}
+    >
+      +
+    </label>
+    <input
+      type="file"
+      id="profile_picture"
+      name="profile_picture"
+      accept="image/*"
+      onChange={handleFileChange}
+      style={{ display: 'none' }}
+    />
+  </div>
+  <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '5px' }}>Upload Profile Picture</p>
+</div>
           <div className="mb-3">
             <label className="form-label fw-semibold" style={{ color: '#374151' }}>
               Email Address *

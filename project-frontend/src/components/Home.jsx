@@ -1,15 +1,15 @@
 
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import CreateMeeting from "./CreateMeeting"
-import Login from "./Login"
-import Signup from "./Signup"
-import Showmeetdetail from "./Showmeetdetail"
+import CreateMeeting from "./Meet/CreateMeeting"
+import Login from "./Auth/Login"
+import Signup from "./Auth/Signup"
+import Showmeetdetail from "./Meet/Showmeetdetail"
 import Userdashboard from "./Userdashboard"
-import ScoketChat from "./ScoketChat"
+import ScoketChat from "./Chat/ScoketChat"
 // import VideoChat from "./VideoChat"
 import Contactsanket from "./Contactsanket"
-import Joinmeeting from "./Joinmeet";
+import Joinmeeting from "./Meet/Joinmeet";
 import NotFound from "./Notfound"
 
 import LandingPage from "./Landingpage";

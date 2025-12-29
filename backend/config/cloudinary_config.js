@@ -1,4 +1,4 @@
-const cloudinary=require("cloudinary").v2;
+const cloudinary=require("cloudinary");
 const CloudinaryStorage=require("multer-storage-cloudinary");
 require("dotenv").config({path:require("path").resolve(__dirname,"../.env"  )});
 

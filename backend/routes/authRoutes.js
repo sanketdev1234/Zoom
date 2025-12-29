@@ -9,7 +9,7 @@ const multer=require("multer");
 const {storage}=require("../config/cloudinary_config");
 const upload=multer({storage});
 
-router.post("/signup",upload.single("profile-picture"),signup);
+router.post("/signup",upload.single("profile_picture"),signup);
 router.post("/login",login);
 router.get("/authstatus",userstatus);
 router.get("/logout",logout);
