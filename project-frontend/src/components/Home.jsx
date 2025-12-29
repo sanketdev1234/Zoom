@@ -13,7 +13,6 @@ import Joinmeeting from "./Joinmeet";
 import NotFound from "./Notfound"
 
 import LandingPage from "./Landingpage";
-import AppIntro from "./AppIntro";
 
 function PageWrapper({ children }) {
     return (
@@ -33,8 +32,7 @@ function PageWrapper({ children }) {
     return (
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageWrapper><AppIntro/></PageWrapper>} />
-        <Route path="/landingpage" element={<PageWrapper><LandingPage/></PageWrapper>} />
+        <Route path="/" element={<PageWrapper><LandingPage/></PageWrapper>} />
           <Route path="/dashboard" element={<PageWrapper><Userdashboard/></PageWrapper>} />
           <Route path="/newmeet" element={<PageWrapper><CreateMeeting/></PageWrapper>} />
           <Route path="/joinmeet" element={<PageWrapper><Joinmeeting/></PageWrapper>} />

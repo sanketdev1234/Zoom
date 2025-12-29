@@ -186,21 +186,6 @@ function AppIntro() {
         className="container-fluid position-relative d-flex align-items-center justify-content-center p-0 video-container"
         style={{ minHeight: "100vh", background: "#181c20" }}
       >
-        {/* Background Video */}
-        <video
-        
-          className="background-video"
-          controls={true}
-          autoPlay
-          loop
-          playsInline
-        >
-          <source src="../src/assets/1013099.mp4" type="video/mp4" />
-          Sorry, your browser does not support embedded videos.
-        </video>
-        
-        {/* Overlay */}
-        <div className="video-overlay"></div>
         
         {/* Content */}
         <div className="content-wrapper">
