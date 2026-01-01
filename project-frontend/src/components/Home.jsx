@@ -12,6 +12,9 @@ import Contactsanket from "./Contactsanket"
 import Joinmeeting from "./Meet/Joinmeet";
 import NotFound from "./Notfound"
 import ProfileCreation from "./profile/profilecreate";
+import DisplayProfile from "./profile/profileview";
+import UpdateProfile from "./profile/updateprofile";
+
 import LandingPage from "./Landingpage";
 
 function PageWrapper({ children }) {
@@ -43,6 +46,8 @@ function PageWrapper({ children }) {
           {/* <Route path="/videomeet/:meetid/:joinid" element={<PageWrapper><VideoChat /></PageWrapper>} /> */}
           <Route path="/contact" element={<PageWrapper><Contactsanket /></PageWrapper>} />
           <Route path="/createprofile" element={<PageWrapper><ProfileCreation /></PageWrapper>} />
+          <Route path="/getprofile" element={<PageWrapper><DisplayProfile /></PageWrapper>} />
+          <Route path="/updateprofile" element={<PageWrapper><UpdateProfile /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
         </Routes>

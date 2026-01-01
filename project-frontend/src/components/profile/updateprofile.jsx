@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
 
-export default function CreateProfile(){
-const [formData, setFormData] = useState({
+export default function UpdateProfile() {
+  const [formData, setFormData] = useState({
     bio: '',
     headline: '',
     location: '',
@@ -11,9 +10,12 @@ const [formData, setFormData] = useState({
       github: '',
       linkedin: ''
     },
-    education: [],
-    experience: []
+    Education: [],
+    Experience: []
   });
+
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState('');
 
   const [currentEducation, setCurrentEducation] = useState({
     school: '',
@@ -36,6 +38,44 @@ const [formData, setFormData] = useState({
     description: ''
   });
 
+  const [loading, setLoading] = useState(true);
+
+  // Fetch existing profile data on component mount
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
+
+  const fetchProfileData = async () => {
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      
+      if (data) {
+        setFormData({
+          bio: data.bio || '',
+          headline: data.headline || '',
+          location: data.location || '',
+          social: {
+            twitter: data.social?.twitter || '',
+            github: data.social?.github || '',
+            linkedin: data.social?.linkedin || ''
+          },
+          Education: data.Education || [],
+          Experience: data.Experience || []
+        });
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -55,6 +95,18 @@ const [formData, setFormData] = useState({
     }));
   };
 
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePicture(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleEducationChange = (e) => {
     const { name, value, type, checked } = e.target;
     setCurrentEducation(prev => ({
@@ -67,7 +119,7 @@ const [formData, setFormData] = useState({
     if (currentEducation.school && currentEducation.degree && currentEducation.field_of_study && currentEducation.from) {
       setFormData(prev => ({
         ...prev,
-        education: [...prev.education, currentEducation]
+        Education: [...prev.Education, currentEducation]
       }));
       setCurrentEducation({
         school: '',
@@ -83,7 +135,10 @@ const [formData, setFormData] = useState({
   };
 
   const removeEducation = (index) => {
-    setFormData((prev)=>({...prev,education:currentEducation.filter((e,i)=>i!==index)}))
+    setFormData(prev => ({
+      ...prev,
+      Education: prev.Education.filter((_, i) => i !== index)
+    }));
   };
 
   const handleExperienceChange = (e) => {
@@ -98,7 +153,7 @@ const [formData, setFormData] = useState({
     if (currentExperience.company && currentExperience.title && currentExperience.from) {
       setFormData(prev => ({
         ...prev,
-        experience: [...prev.experience, currentExperience]
+        Experience: [...prev.Experience, currentExperience]
       }));
       setCurrentExperience({
         company: '',
@@ -113,36 +168,104 @@ const [formData, setFormData] = useState({
   };
 
   const removeExperience = (index) => {
-    setFormData((prev)=>({...prev,experience:currentExperience.filter((e,i)=>i!==index)}))
+    setFormData(prev => ({
+      ...prev,
+      Experience: prev.Experience.filter((_, i) => i !== index)
+    }));
   };
 
-  const handleSubmit = async(e) => {
-    console.log('Profile Data:', formData);
-    e.preventDefault;
-    const response=await axios.post("/profile/addnew",{
-    bio: formData.bio,
-    headline: formData.headline,
-    location: formData.location,
-    social:formData.social,
-    Education:formData.education ,
-    Experience:formData.experience
-    },{withCredentials: true })
-    console.log(response);
+  const handleSubmit = async () => {
+    try {
+      const profileId = 'your-profile-id'; // Get this from your auth context or props
+      
+      // Create FormData for multipart/form-data submission
+      const formDataToSend = new FormData();
+      
+      // Only add fields that have values (to match your validator's optional fields)
+      if (formData.bio) formDataToSend.append('bio', formData.bio);
+      if (formData.headline) formDataToSend.append('headline', formData.headline);
+      if (formData.location) formDataToSend.append('location', formData.location);
+      
+      // Add social object if any social fields have values
+      if (formData.social.twitter || formData.social.github || formData.social.linkedin) {
+        formDataToSend.append('social', JSON.stringify(formData.social));
+      }
+      
+      // Add arrays if they have items
+      if (formData.Education.length > 0) {
+        formDataToSend.append('Education', JSON.stringify(formData.Education));
+      }
+      
+      if (formData.Experience.length > 0) {
+        formDataToSend.append('Experience', JSON.stringify(formData.Experience));
+      }
+      
+      // Add profile picture if selected
+      if (profilePicture) {
+        formDataToSend.append('profile_picture', profilePicture);
+      }
+
+      const response = await fetch(`/api/profile/${profileId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formDataToSend
+      });
+
+      const result = await response.json();
+      console.log('Update result:', result);
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
   };
 
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.loadingText}>Loading profile...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
       <div style={styles.formWrapper}>
-        <h1 style={styles.title}>Create Your Profile</h1>
+        <h1 style={styles.title}>Update Your Profile</h1>
         
         <div>
+          {/* Profile Picture Section */}
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Profile Picture</h2>
+            
+            <div style={styles.profilePictureContainer}>
+              {profilePicturePreview && (
+                <img 
+                  src={profilePicturePreview} 
+                  alt="Profile Preview" 
+                  style={styles.profilePicturePreview}
+                />
+              )}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Upload New Profile Picture</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureChange}
+                  style={styles.fileInput}
+                />
+              </div>
+            </div>
+          </section>
+
           {/* Basic Information Section */}
           <section style={styles.section}>
             <h2 style={styles.sectionTitle}>Basic Information</h2>
             
             <div style={styles.formGroup}>
-              <label style={styles.label}>Professional Headline *</label>
+              <label style={styles.label}>Professional Headline</label>
               <input
                 type="text"
                 name="headline"
@@ -299,14 +422,16 @@ const [formData, setFormData] = useState({
               </div>
 
               <div style={styles.formGroup}>
-                <label style={styles.label}>GPA</label>
+                <label style={styles.label}>GPA (0-10)</label>
                 <input
                   type="number"
                   name="gpa"
                   value={currentEducation.gpa}
                   onChange={handleEducationChange}
-                  placeholder="e.g., 8.0"
+                  placeholder="e.g., 3.8"
                   step="0.01"
+                  min="0"
+                  max="10"
                   style={styles.input}
                 />
               </div>
@@ -328,10 +453,10 @@ const [formData, setFormData] = useState({
               </button>
             </div>
 
-            {formData.education.length > 0 && (
+            {formData.Education.length > 0 && (
               <div style={styles.itemsList}>
-                <h3 style={styles.listTitle}>Added Education:</h3>
-                {formData.education.map((edu, index) => (
+                <h3 style={styles.listTitle}>Current Education Entries:</h3>
+                {formData.Education.map((edu, index) => (
                   <div key={index} style={styles.item}>
                     <div style={styles.itemContent}>
                       <strong>{edu.degree} in {edu.field_of_study}</strong>
@@ -449,10 +574,10 @@ const [formData, setFormData] = useState({
               </button>
             </div>
 
-            {formData.experience.length > 0 && (
+            {formData.Experience.length > 0 && (
               <div style={styles.itemsList}>
-                <h3 style={styles.listTitle}>Added Experience:</h3>
-                {formData.experience.map((exp, index) => (
+                <h3 style={styles.listTitle}>Current Experience Entries:</h3>
+                {formData.Experience.map((exp, index) => (
                   <div key={index} style={styles.item}>
                     <div style={styles.itemContent}>
                       <strong>{exp.title}</strong>
@@ -475,7 +600,7 @@ const [formData, setFormData] = useState({
           </section>
 
           <button onClick={handleSubmit} style={styles.submitButton}>
-            Create Profile
+            Update Profile
           </button>
         </div>
       </div>
@@ -505,6 +630,12 @@ const styles = {
     color: '#333',
     textAlign: 'center'
   },
+  loadingText: {
+    fontSize: '20px',
+    textAlign: 'center',
+    padding: '50px',
+    color: '#666'
+  },
   section: {
     marginBottom: '40px',
     paddingBottom: '30px',
@@ -515,6 +646,27 @@ const styles = {
     fontWeight: '600',
     marginBottom: '20px',
     color: '#444'
+  },
+  profilePictureContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '20px'
+  },
+  profilePicturePreview: {
+    width: '150px',
+    height: '150px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    border: '3px solid #ddd'
+  },
+  fileInput: {
+    width: '100%',
+    padding: '10px',
+    fontSize: '14px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    cursor: 'pointer'
   },
   formGroup: {
     marginBottom: '20px'
@@ -573,7 +725,7 @@ const styles = {
   },
   addButton: {
     padding: '10px 20px',
-    backgroundColor: '#0e0e0eff',
+    backgroundColor: '#070707ff',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
@@ -620,7 +772,7 @@ const styles = {
   submitButton: {
     width: '100%',
     padding: '15px',
-    backgroundColor: '#070707ff',
+    backgroundColor: '#0d0d0eff',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
