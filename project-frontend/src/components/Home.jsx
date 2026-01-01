@@ -11,7 +11,7 @@ import ScoketChat from "./Chat/ScoketChat"
 import Contactsanket from "./Contactsanket"
 import Joinmeeting from "./Meet/Joinmeet";
 import NotFound from "./Notfound"
-
+import ProfileCreation from "./profile/profilecreate";
 import LandingPage from "./Landingpage";
 
 function PageWrapper({ children }) {
@@ -42,6 +42,7 @@ function PageWrapper({ children }) {
           <Route path="/ongoingmeet/:meetid/:joinid" element={<PageWrapper><ScoketChat /></PageWrapper>} />
           {/* <Route path="/videomeet/:meetid/:joinid" element={<PageWrapper><VideoChat /></PageWrapper>} /> */}
           <Route path="/contact" element={<PageWrapper><Contactsanket /></PageWrapper>} />
+          <Route path="/createprofile" element={<PageWrapper><ProfileCreation /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
         </Routes>

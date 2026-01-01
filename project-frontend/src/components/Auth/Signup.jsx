@@ -129,10 +129,11 @@ function Signup() {
     data.append("gender",formData.gender);
     
     if(formData.profile_picture){
+       console.log("the profile_picture is",formData.profile_picture);
         data.append("profile_picture",formData.profile_picture);
     }
 
-      const response = await axios.post('/auth/signup', data, { headers:{'Content-Type': 'multipart/form-data' },withCredentials: true });
+      const response = await axios.post('/auth/signup', data, {withCredentials: true });
 
       if (response.status === 201) {
         toast.success('Signup successful! Please proceed for final login.');
@@ -197,7 +198,7 @@ function Signup() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} enctype="multipart/form-data">
           <div className="row">
             <div className="col-md-6 mb-3">
               <label className="form-label fw-semibold" style={{ color: '#374151' }}>

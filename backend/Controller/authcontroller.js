@@ -23,9 +23,12 @@ module.exports.signup=async(req,res,next)=>{
         const newuser=  new user({email:email , display_name:display_name,password:password,full_name:full_name,gender:gender,date_of_birth:date_of_birth});
 
         if(req.file){
-          const photopath=req.file.path;
+          console.log("the req.file is",req.file);
+          console.log("the image url:",req.file.secure_url);
+          console.log("the image filename:",req.file.originalname);
+          const photopath=req.file.secure_url;
           newuser.profile_picture.url=photopath;
-          newuser.profile_picture.file_id=req.file.filename;
+          newuser.profile_picture.file_id=req.file.originalname;
         }
         
         await newuser.save();

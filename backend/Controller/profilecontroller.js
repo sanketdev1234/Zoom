@@ -51,7 +51,12 @@ module.exports.createProfile=async(req,res)=>{
     const created_profile_new=await profile.insertOne({bio:bio , headline:headline,location:location , social:social,Education:Education , Experience:Experience});
     created_profile_new.owner=current_user_id;
     await created_profile_new.save();
-    res.send(`new profile added : ${created_profile_new}`);
+    // res.send(`new profile added : ${created_profile_new}`);
+    res.status(200).json({
+        success:true,
+        message:"profile created",
+        data:created_profile_new
+    })
     }
     catch(err){
         console.log("err:",err);
