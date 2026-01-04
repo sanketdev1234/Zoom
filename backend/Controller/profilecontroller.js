@@ -9,7 +9,13 @@ console.log("user:",userid);
 try{
 const user_profile=await profile.findOne({owner:userid}).populate("owner");
 console.log(user_profile);
-res.send(`the selected user profile is ${user_profile}`);
+// res.send(`the selected user profile is ${user_profile}`);
+res.status(200).json({
+    message:"profile fetch done",
+    profile:user_profile,
+    status:true
+});
+
 }
 catch(err){
     console.log("error:",err);

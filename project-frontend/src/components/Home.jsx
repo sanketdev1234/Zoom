@@ -46,7 +46,7 @@ function PageWrapper({ children }) {
           {/* <Route path="/videomeet/:meetid/:joinid" element={<PageWrapper><VideoChat /></PageWrapper>} /> */}
           <Route path="/contact" element={<PageWrapper><Contactsanket /></PageWrapper>} />
           <Route path="/createprofile" element={<PageWrapper><ProfileCreation /></PageWrapper>} />
-          <Route path="/getprofile" element={<PageWrapper><DisplayProfile /></PageWrapper>} />
+          <Route path="/getprofile/:wantid" element={<PageWrapper><DisplayProfile /></PageWrapper>} />
           <Route path="/updateprofile" element={<PageWrapper><UpdateProfile /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
