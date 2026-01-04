@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-
+import axios from "axios";
+import {useParams} from "react-router-dom"
 export default function UpdateProfile() {
+  const {wantid,profileId}=useParams()
   const [formData, setFormData] = useState({
     bio: '',
     headline: '',
@@ -11,11 +13,9 @@ export default function UpdateProfile() {
       linkedin: ''
     },
     Education: [],
-    Experience: []
-  });
+    Experience: [],
 
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [profilePicturePreview, setProfilePicturePreview] = useState('');
+  });
 
   const [currentEducation, setCurrentEducation] = useState({
     school: '',
@@ -38,43 +38,21 @@ export default function UpdateProfile() {
     description: ''
   });
 
-  const [loading, setLoading] = useState(true);
+
 
   // Fetch existing profile data on component mount
-  useEffect(() => {
-    fetchProfileData();
-  }, []);
-
-  const fetchProfileData = async () => {
-    try {
-      // Replace with your actual API endpoint
-      const response = await fetch('/api/profile', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+  useEffect(()=>{
+        async function getprofile(){
+            const response=await axios.get(`/profile/get/${wantid}`,{withCredentials:true})
+            console.log(typeof(response));
+            console.log(response.data)
+            setFormData(response.data.profile);
+            setCurrentEducation(response.data.profile.Education);
+            setCurrentExperience(response.data.profile.Experience);
         }
-      });
-      const data = await response.json();
-      
-      if (data) {
-        setFormData({
-          bio: data.bio || '',
-          headline: data.headline || '',
-          location: data.location || '',
-          social: {
-            twitter: data.social?.twitter || '',
-            github: data.social?.github || '',
-            linkedin: data.social?.linkedin || ''
-          },
-          Education: data.Education || [],
-          Experience: data.Experience || []
-        });
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setLoading(false);
-    }
-  };
+        getprofile();
+  },[]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -95,17 +73,6 @@ export default function UpdateProfile() {
     }));
   };
 
-  const handleProfilePictureChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfilePicture(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicturePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleEducationChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -174,61 +141,16 @@ export default function UpdateProfile() {
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const profileId = 'your-profile-id'; // Get this from your auth context or props
-      
-      // Create FormData for multipart/form-data submission
-      const formDataToSend = new FormData();
-      
-      // Only add fields that have values (to match your validator's optional fields)
-      if (formData.bio) formDataToSend.append('bio', formData.bio);
-      if (formData.headline) formDataToSend.append('headline', formData.headline);
-      if (formData.location) formDataToSend.append('location', formData.location);
-      
-      // Add social object if any social fields have values
-      if (formData.social.twitter || formData.social.github || formData.social.linkedin) {
-        formDataToSend.append('social', JSON.stringify(formData.social));
-      }
-      
-      // Add arrays if they have items
-      if (formData.Education.length > 0) {
-        formDataToSend.append('Education', JSON.stringify(formData.Education));
-      }
-      
-      if (formData.Experience.length > 0) {
-        formDataToSend.append('Experience', JSON.stringify(formData.Experience));
-      }
-      
-      // Add profile picture if selected
-      if (profilePicture) {
-        formDataToSend.append('profile_picture', profilePicture);
-      }
-
-      const response = await fetch(`/api/profile/${profileId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formDataToSend
-      });
-
-      const result = await response.json();
-      console.log('Update result:', result);
-      alert('Profile updated successfully!');
+      console.log(formData)
+      const respone=await axios.put(`/profile/edit/${profileId}`,formData,{withCredentials:true});
+      console.log(respone);
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
     }
   };
-
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.loadingText}>Loading profile...</div>
-      </div>
-    );
-  }
 
   return (
     <div style={styles.container}>
@@ -236,30 +158,7 @@ export default function UpdateProfile() {
         <h1 style={styles.title}>Update Your Profile</h1>
         
         <div>
-          {/* Profile Picture Section */}
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Profile Picture</h2>
-            
-            <div style={styles.profilePictureContainer}>
-              {profilePicturePreview && (
-                <img 
-                  src={profilePicturePreview} 
-                  alt="Profile Preview" 
-                  style={styles.profilePicturePreview}
-                />
-              )}
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Upload New Profile Picture</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleProfilePictureChange}
-                  style={styles.fileInput}
-                />
-              </div>
-            </div>
-          </section>
-
+         <form onSubmit={handleSubmit}>
           {/* Basic Information Section */}
           <section style={styles.section}>
             <h2 style={styles.sectionTitle}>Basic Information</h2>
@@ -271,7 +170,6 @@ export default function UpdateProfile() {
                 name="headline"
                 value={formData.headline}
                 onChange={handleInputChange}
-                placeholder="e.g., Senior Node.js Developer"
                 style={styles.input}
               />
             </div>
@@ -282,7 +180,6 @@ export default function UpdateProfile() {
                 name="bio"
                 value={formData.bio}
                 onChange={handleInputChange}
-                placeholder="Tell us about yourself..."
                 style={styles.textarea}
                 rows="4"
               />
@@ -295,7 +192,6 @@ export default function UpdateProfile() {
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
-                placeholder="e.g., San Francisco, CA"
                 style={styles.input}
               />
             </div>
@@ -312,7 +208,6 @@ export default function UpdateProfile() {
                 name="twitter"
                 value={formData.social.twitter}
                 onChange={handleSocialChange}
-                placeholder="https://twitter.com/username"
                 style={styles.input}
               />
             </div>
@@ -324,7 +219,6 @@ export default function UpdateProfile() {
                 name="github"
                 value={formData.social.github}
                 onChange={handleSocialChange}
-                placeholder="https://github.com/username"
                 style={styles.input}
               />
             </div>
@@ -336,7 +230,6 @@ export default function UpdateProfile() {
                 name="linkedin"
                 value={formData.social.linkedin}
                 onChange={handleSocialChange}
-                placeholder="https://linkedin.com/in/username"
                 style={styles.input}
               />
             </div>
@@ -354,7 +247,6 @@ export default function UpdateProfile() {
                   name="school"
                   value={currentEducation.school}
                   onChange={handleEducationChange}
-                  placeholder="e.g., Stanford University"
                   style={styles.input}
                 />
               </div>
@@ -366,7 +258,6 @@ export default function UpdateProfile() {
                   name="degree"
                   value={currentEducation.degree}
                   onChange={handleEducationChange}
-                  placeholder="e.g., B.Tech, M.S., Ph.D."
                   style={styles.input}
                 />
               </div>
@@ -378,7 +269,6 @@ export default function UpdateProfile() {
                   name="field_of_study"
                   value={currentEducation.field_of_study}
                   onChange={handleEducationChange}
-                  placeholder="e.g., Computer Science"
                   style={styles.input}
                 />
               </div>
@@ -428,7 +318,6 @@ export default function UpdateProfile() {
                   name="gpa"
                   value={currentEducation.gpa}
                   onChange={handleEducationChange}
-                  placeholder="e.g., 3.8"
                   step="0.01"
                   min="0"
                   max="10"
@@ -442,7 +331,6 @@ export default function UpdateProfile() {
                   name="description"
                   value={currentEducation.description}
                   onChange={handleEducationChange}
-                  placeholder="Activities, societies, achievements..."
                   style={styles.textarea}
                   rows="3"
                 />
@@ -490,7 +378,6 @@ export default function UpdateProfile() {
                   name="company"
                   value={currentExperience.company}
                   onChange={handleExperienceChange}
-                  placeholder="e.g., Google"
                   style={styles.input}
                 />
               </div>
@@ -501,8 +388,7 @@ export default function UpdateProfile() {
                   type="text"
                   name="title"
                   value={currentExperience.title}
-                  onChange={handleExperienceChange}
-                  placeholder="e.g., Senior Software Engineer"
+                  onChange={handleExperienceChange} 
                   style={styles.input}
                 />
               </div>
@@ -514,7 +400,6 @@ export default function UpdateProfile() {
                   name="location"
                   value={currentExperience.location}
                   onChange={handleExperienceChange}
-                  placeholder="e.g., Mountain View, CA"
                   style={styles.input}
                 />
               </div>
@@ -563,7 +448,6 @@ export default function UpdateProfile() {
                   name="description"
                   value={currentExperience.description}
                   onChange={handleExperienceChange}
-                  placeholder="Responsibilities and achievements..."
                   style={styles.textarea}
                   rows="3"
                 />
@@ -599,9 +483,10 @@ export default function UpdateProfile() {
             )}
           </section>
 
-          <button onClick={handleSubmit} style={styles.submitButton}>
+          <button type="submit" style={styles.submitButton}>
             Update Profile
           </button>
+          </form>
         </div>
       </div>
     </div>

@@ -47,7 +47,7 @@ function PageWrapper({ children }) {
           <Route path="/contact" element={<PageWrapper><Contactsanket /></PageWrapper>} />
           <Route path="/createprofile" element={<PageWrapper><ProfileCreation /></PageWrapper>} />
           <Route path="/getprofile/:wantid" element={<PageWrapper><DisplayProfile /></PageWrapper>} />
-          <Route path="/updateprofile" element={<PageWrapper><UpdateProfile /></PageWrapper>} />
+          <Route path="/updateprofile/:wantid/:profileId" element={<PageWrapper><UpdateProfile /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
         </Routes>
