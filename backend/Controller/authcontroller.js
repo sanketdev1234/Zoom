@@ -104,7 +104,14 @@ module.exports.userstatus = (req, res) => {
         const User = await user.findById(data.id)
         if (User) {
         console.log(User);
-        res.send(User);
+        // res.send(User);
+
+        res.status(200).json({
+          message:"user logged in!",
+          user:User,
+          status:true
+        });
+
         } 
         else  res.send("user not found")
       }

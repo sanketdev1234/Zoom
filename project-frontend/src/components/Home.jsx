@@ -14,8 +14,10 @@ import NotFound from "./Notfound"
 import ProfileCreation from "./profile/profilecreate";
 import DisplayProfile from "./profile/profileview";
 import UpdateProfile from "./profile/updateprofile";
-
+import CreatePost from "./post/createpost"
 import LandingPage from "./Landingpage";
+import SeeAllPosts from "./post/seeallpost";
+import EditPost from "./post/editpost"
 
 function PageWrapper({ children }) {
     return (
@@ -48,6 +50,9 @@ function PageWrapper({ children }) {
           <Route path="/createprofile" element={<PageWrapper><ProfileCreation /></PageWrapper>} />
           <Route path="/getprofile/:wantid" element={<PageWrapper><DisplayProfile /></PageWrapper>} />
           <Route path="/updateprofile/:wantid/:profileId" element={<PageWrapper><UpdateProfile /></PageWrapper>} />
+          <Route path="/createpost" element={<PageWrapper><CreatePost /></PageWrapper>} />
+          <Route path="/editpost/:postId" element={<PageWrapper><EditPost /></PageWrapper>} />
+          <Route path="/feed" element={<PageWrapper><SeeAllPosts /></PageWrapper>} />
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
         </Routes>

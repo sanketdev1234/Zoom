@@ -14,7 +14,8 @@ module.exports.get_single_post=async(req,res)=>{
     if (!required_post) return res.status(404).send("Post not found");
 
     console.log(post);
-    res.send(`the require post is : ${required_post}`); 
+    // res.send(`the require post is : ${required_post}`); 
+    res.send(required_post); 
     }
     catch(error){
         console.log(error);
@@ -46,7 +47,12 @@ try{
     }}).sort({createdAt:-1});
 
     console.log(all_post);
-    res.send(all_post);
+    // res.send(all_post);
+    res.status(200).json({
+        message:"all post sent",
+        posts:all_post,
+        status:true
+    })
 }
     catch(error){
         console.log(error);
@@ -86,23 +92,28 @@ module.exports.createnewpost=async(req,res)=>{
 const text=req.body.text;
 console.log(req.user._id) // From your authMiddleware
 
-const  mediaData = { media_url: null, media_id: null };
+let  mediaData = { media_url: null, media_id: null };
 
         
         if (req.file) {
             mediaData = {
-                media_url: req.file.path,
-                media_id: req.file.filename
+                media_url: req.file.secure_url,
+                media_id: req.file.originalname
             };
         }
 try{
     const post_created=await post.insertOne({text:text ,  media:mediaData});
     post_created.owner=req.user._id;
     await post_created.save();
-    res.send(`the new post created: ${post_created}`);
+    // res.send(`the new post created: ${post_created}`);
+    res.status(200).json({
+        message:"post created",
+        post:post_created,
+        secure:true
+    })
 }
     catch(error){
-        console.log(error);
+        console.log("the error is ",error);
         return res.send(error);
     }
 
@@ -138,12 +149,18 @@ console.log(req.user._id) // From your authMiddleware
         console.log(updated_post);
         if (req.file) {
         updated_post.media={
-                media_url: req.file.path,
-                media_id: req.file.filename
+                media_url: req.file.secure_url,
+                media_id: req.file.originalname
             };
             await updated_post.save();
         }
-        res.send(`post edited:${updated_post}`)
+        // res.send(`post edited:${updated_post}`)
+        res.status(200).json({
+            message:"post edited",
+            editedpost:updated_post,
+            status:true
+        });
+
         }
         catch(error){
         console.log(error);
