@@ -2,11 +2,14 @@ import React, { useState, useEffect ,useContext} from 'react';
 import { Link } from "react-router-dom";
 import {UserContext} from "../usercontext"
 import axios from "axios"
+import CommentsSection from './comment';
+
 export default function SeeAllPosts() {
   const {curruser}=useContext(UserContext);
   const [posts, setPosts] = useState([]);
   const [isPostLike ,  setisPostLike]=useState(false);
-  
+  const [showComments, setShowComments] = useState({});
+
   useEffect(() => {
     async function fetchallpost(){
     const response2=await axios.get("/post/getallpost",{withCredentials:true});
@@ -28,11 +31,11 @@ export default function SeeAllPosts() {
     }
   };
   
-
+  
     const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    return `${date.getDate()} ${months[date.getMonth()]}  ${date.getFullYear()}`;
   };
 
   return (
@@ -112,9 +115,17 @@ export default function SeeAllPosts() {
                     </span>
                   </button>
 
-                  <button style={styles.actionButton}>
-                    <span style={styles.actionText}>Comment here</span>
-                  </button>
+<button 
+  onClick={() => setShowComments(prev => ({
+    ...prev, 
+    [post._id]: !prev[post._id]
+  }))}
+  style={styles.actionButton}
+>
+  <span style={styles.actionText}>
+    {showComments[post._id] ? 'Hide Comments' : 'Comment here'}
+  </span>
+</button>
              
              {post.owner._id===curruser._id && 
                   <button style={styles.actionButton}>
@@ -123,7 +134,9 @@ export default function SeeAllPosts() {
             }
                 </div>
 
-                {/* add the comment component here */}
+{showComments[post._id] && (
+  <CommentsSection postId={post._id} />
+)}
 
               </div>
             ))}
