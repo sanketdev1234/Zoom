@@ -38,6 +38,7 @@ function PageWrapper({ children }) {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageWrapper><LandingPage/></PageWrapper>} />
+        <Route path="/landingpage" element={<PageWrapper><LandingPage/></PageWrapper>} />
           <Route path="/dashboard" element={<PageWrapper><Userdashboard/></PageWrapper>} />
           <Route path="/newmeet" element={<PageWrapper><CreateMeeting/></PageWrapper>} />
           <Route path="/joinmeet" element={<PageWrapper><Joinmeeting/></PageWrapper>} />

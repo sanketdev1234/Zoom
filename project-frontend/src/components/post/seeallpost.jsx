@@ -7,10 +7,8 @@ import CommentsSection from './comment';
 export default function SeeAllPosts() {
   const {curruser}=useContext(UserContext);
   const [posts, setPosts] = useState([]);
-  const [isPostLike ,  setisPostLike]=useState(false);
-  // const [postlike,ssetpostlike]=useState({
-  //   'postId':[]
-  // });
+  // const [isPostLike ,  setisPostLike]=useState(false);
+  const [postlike,setpostlike]=useState({});
 
   const [showComments, setShowComments] = useState({});
 
@@ -20,16 +18,24 @@ export default function SeeAllPosts() {
     console.log("this is the response 2",response2);
     console.log("the current usser is ",curruser);
     setPosts(response2.data.posts);
-    
+    const arr=response2.data.posts;
+    let obj={};
+    arr.forEach((ele)=>{
+      obj[ele._id]=ele.likeby
+    });
+    console.log("obj is",obj);
+    setpostlike(obj);
     }
     fetchallpost()
-  }, [isPostLike]);
+  }, []);
   
   const handleLike = async (postId) => {
     try {
       const response3=await axios.get(`/post/likepost/${postId}`,{withCredentials:true});
       console.log(response3);
-      setisPostLike(!isPostLike);
+      // setisPostLike(!isPostLike);
+      if(response3.data==="liked")setpostlike((prev)=>({...prev,[postId]:[...prev[postId],curruser._id]}))
+      if(response3.data==="like remove")setpostlike((prev)=>({...prev,[postId]:prev[postId].filter((id)=>id!=curruser._id)}))
     } catch (error) {
       console.error('Error liking post:', error);
     }
@@ -103,7 +109,7 @@ export default function SeeAllPosts() {
                 {/* Post Stats */}
                 <div style={styles.postStats}>
                   <span style={styles.statsText}>
-                    {post.likeby.length} {post.likeby.length === 1 ? 'like' : 'likes'}
+                    {postlike[post._id].length} {postlike[post._id].length === 1 ? 'like' : 'likes'}
                   </span>
                   <span style={styles.statsText}>
                     {post.comments.length} {post.comments.length === 1 ? 'comment' : 'comments'}
@@ -120,7 +126,7 @@ export default function SeeAllPosts() {
                   >
                     
                     <span style={styles.actionText}>
-                      {(post.likeby && post.likeby.includes(curruser._id)) ? 'Liked' : 'Like it'}
+                      {(postlike[post._id] && postlike[post._id].includes(curruser._id)) ? 'Liked' : 'Like it'}
                     </span>
                   </button>
 

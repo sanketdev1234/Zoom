@@ -10,7 +10,8 @@ const SanketMeetLanding = () => {
   useEffect(() => {
     async function checkuser() {
       await axios.get("/auth/authstatus", { withCredentials: true }).then((response) => {
-        setuser(response.data.user.display_name);
+        console.log("teh response.data is",response.data)
+        if(response.data!=="token not found")setuser(response.data.user.display_name);
       }).catch((err) => {
         console.log("the error is ", err);
       });
