@@ -58,7 +58,7 @@ const CreateMeeting = () => {
       }, { withCredentials: true });
       toast.success('Meeting created successfully!');
       setTimeout(() => {
-        Navigate("/landingpage");
+        Navigate(-1);
       }, 2000);
       setForm({ Joining_id: generateMeetingId(), StartAt: '', EndAt: '' });
       

@@ -8,6 +8,10 @@ export default function SeeAllPosts() {
   const {curruser}=useContext(UserContext);
   const [posts, setPosts] = useState([]);
   const [isPostLike ,  setisPostLike]=useState(false);
+  // const [postlike,ssetpostlike]=useState({
+  //   'postId':[]
+  // });
+
   const [showComments, setShowComments] = useState({});
 
   useEffect(() => {
@@ -31,7 +35,12 @@ export default function SeeAllPosts() {
     }
   };
   
-  
+  const handeletepost=async(postId)=>{
+      const response=await axios.delete(`/post/delete/${postId}`);
+      console.log("the response of delete post",response);
+      setPosts((prev)=>(prev.filter((post)=>post._id!=postId)));
+  }
+
     const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -130,6 +139,11 @@ export default function SeeAllPosts() {
              {post.owner._id===curruser._id && 
                   <button style={styles.actionButton}>
                     <Link to={`/editpost/${post._id}`} style={styles.actionText}>Edit it</Link>
+                  </button>
+            }
+             {post.owner._id===curruser._id && 
+                  <button style={styles.actionButton} type="button" onClick={()=>handeletepost(post._id)}>
+                    <span>Delete it</span>
                   </button>
             }
                 </div>

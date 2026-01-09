@@ -174,7 +174,10 @@ module.exports.deletepost=async(req,res)=>{
     const postId=req.params.postId;
     const deleted_post=await post.findByIdAndDelete(postId);
     console.log("deleted_post => ",deleted_post);
-    res.send(`post deleted ${deleted_post}`);
+    // res.send(`post deleted ${deleted_post}`);
+    res.status(200).json({
+        message:"post deleted",
+    })
     }
     catch(err){
         console.log(err);

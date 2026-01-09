@@ -53,7 +53,7 @@ function PageWrapper({ children }) {
           <Route path="/createpost" element={<PageWrapper><CreatePost /></PageWrapper>} />
           <Route path="/editpost/:postId" element={<PageWrapper><EditPost /></PageWrapper>} />
           <Route path="/feed" element={<PageWrapper><SeeAllPosts /></PageWrapper>} />
-          <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+          <Route path="/*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
         </Routes>
       </AnimatePresence>
