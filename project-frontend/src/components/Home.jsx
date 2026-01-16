@@ -18,7 +18,9 @@ import CreatePost from "./post/createpost"
 import LandingPage from "./Landingpage";
 import SeeAllPosts from "./post/seeallpost";
 import EditPost from "./post/editpost"
-
+import SeeAllPostsUser from "./post/seespecificpost";
+import ShowmyConnections from "./connections/showmyconnections"
+import Showincomingrequest from "./connections/incomingrequests"
 function PageWrapper({ children }) {
     return (
       <motion.div
@@ -54,6 +56,9 @@ function PageWrapper({ children }) {
           <Route path="/createpost" element={<PageWrapper><CreatePost /></PageWrapper>} />
           <Route path="/editpost/:postId" element={<PageWrapper><EditPost /></PageWrapper>} />
           <Route path="/feed" element={<PageWrapper><SeeAllPosts /></PageWrapper>} />
+          <Route path="/feed/:full_name" element={<PageWrapper><SeeAllPostsUser /></PageWrapper>} />
+          <Route path="/myconnections" element={<PageWrapper><ShowmyConnections /></PageWrapper>} />
+          <Route path="/incomingrequests" element={<PageWrapper><Showincomingrequest /></PageWrapper>} />
           <Route path="/*" element={<PageWrapper><NotFound /></PageWrapper>} />
   
         </Routes>

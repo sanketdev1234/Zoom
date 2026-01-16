@@ -11,7 +11,7 @@ const iscorrect_owner_post=require("../middleware/authmiddleware").iscorrect_own
 router.get("/getpost/:postId",postcontroller.get_single_post);
 
 //get the post of single user
-router.get("/getallpost/:personId",postcontroller.get_all_post_user); 
+router.get("/getallpost/:full_name",postcontroller.get_all_post_user); 
 
 //get the all post of our db ie total feed
 router.get("/getallpost",postcontroller.getallpost);

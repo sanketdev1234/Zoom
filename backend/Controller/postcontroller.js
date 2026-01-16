@@ -24,14 +24,22 @@ module.exports.get_single_post=async(req,res)=>{
 };
 
 module.exports.get_all_post_user=async(req,res)=>{
-const personId=req.params.personId;
+const personname=req.params.full_name;
+
 try{
-    const all_post=await post.find({owner:personId}).populate("owner").populate({path:"comments",populate:{
+    const require_user=await user.findOne({full_name:personname});
+
+    const all_post=await post.find({owner:require_user._id}).populate("owner").populate({path:"comments",populate:{
         path:"Author"
     }}).sort({createdAt:-1});
 
     console.log(all_post);
-    res.send(all_post);
+    // res.send(all_post);
+    res.status(200).json({
+        message:"all post sent",
+        posts:all_post,
+        status:true
+    })
 }
     catch(error){
         console.log(error);
