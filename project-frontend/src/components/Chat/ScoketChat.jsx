@@ -26,7 +26,7 @@ useEffect(()=>{
   await axios.get("/auth/authstatus",{withCredentials: true}).then((response)=>{
   console.log("the response is ", response.data);
   setuser(response.data);
-  setdisplayname(response.data.display_name);
+  setdisplayname(response.data.user.display_name);
   console.log(user);
 
   }).catch((err)=>{

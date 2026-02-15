@@ -3,7 +3,7 @@ const router=require("express").Router({mergerParams:true});
 const connectioncontroller=require("../Controller/connectioncontroller");
 
 // send a connection from req.user to receiverId
-router.post("/newrequestsend/:receiverId",connectioncontroller.connection_send_new);
+router.get("/newrequestsend/:receiverId",connectioncontroller.connection_send_new);
 
 //get my all connections of req.user._id ie status=accepted
 router.get("/myconnections",connectioncontroller.get_all_accepted_connections);

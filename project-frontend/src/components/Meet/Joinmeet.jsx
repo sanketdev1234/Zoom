@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios, { formToJSON } from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import backgroundImg from '../assets/background.jpg';
+import backgroundImg from '../../assets/background.jpg';
 import { useNavigate } from 'react-router-dom';
 
 

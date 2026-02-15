@@ -48,9 +48,9 @@ const profile_validator=joi.object({
     headline:joi.string().required(),
     location:joi.string().allow(null, ''),
     social:joi.object({
-        twitter:joi.string().uri().allow(null, ''),
-        github:joi.string().uri().allow(null, ''),
-        linkedin:joi.string().uri().allow(null, '')
+        twitter:joi.string().allow(null, ''),
+        github:joi.string().allow(null, ''),
+        linkedin:joi.string().allow(null, '')
     }),
 
     Education:joi.array().items(Education),
@@ -65,9 +65,9 @@ const profile_validator_update=joi.object({
     headline:joi.string().optional(),
     location:joi.string().allow(null, '').optional(),
     social:joi.object({
-        twitter:joi.string().uri().allow(null, '').optional(),
-        github:joi.string().uri().allow(null, '').optional(),
-        linkedin:joi.string().uri().allow(null, '').optional()
+        twitter:joi.string().allow(null, '').optional(),
+        github:joi.string().allow(null, '').optional(),
+        linkedin:joi.string().allow(null, '').optional()
     }).optional(),
 // The entire social object can be omitted
 

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Calendar, Key, Clock } from 'lucide-react';
-import backgroundImg from '../assets/background.jpg';
+import backgroundImg from '../../assets/background.jpg';
 import { useNavigate } from 'react-router-dom';
 function generateMeetingId() {
   // Generates a random 8-character alphanumeric string
@@ -58,7 +58,7 @@ const CreateMeeting = () => {
       }, { withCredentials: true });
       toast.success('Meeting created successfully!');
       setTimeout(() => {
-        Navigate("/landingpage");
+        Navigate(-1);
       }, 2000);
       setForm({ Joining_id: generateMeetingId(), StartAt: '', EndAt: '' });
       
