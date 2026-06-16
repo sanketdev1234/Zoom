@@ -1,20 +1,23 @@
 const profile=require("../model/profile");
 const connection=require("../model/connections");
 const post=require("../model/post")
-module.exports.search_by_profile=async(req,res)=>{
-    const {query}=req.query;
-    try{
-    const require_profile=await profile.find({
-        $or:[{headline:{$regex: query , $option:"i"}},{bio:{$regex: query,$option:"i"}},{location:{$regex: query  , $option:"i"}}]
+module.exports.search_by_profile = async (req, res) => {
+  const { query } = req.query;
+  try {
+    const require_profile = await profile.find({
+      $or: [
+        { headline: { $regex: query, $options: "i" } },
+        { bio: { $regex: query, $options: "i" } },
+        { location: { $regex: query, $options: "i" } }
+      ]
     }).populate("owner");
-    console.log(require_profile);
-    res.send(`your search result ${require_profile}`)
-    }
-    catch(error){
-        console.log(error);
-        return res.send(error);
-    }
-}
+
+    res.status(200).json({ results: require_profile, status: true });  // ✅ JSON
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error });
+  }
+};
 
 module.exports.suggestions=async(req,res)=>{
     const userid=req.user._id;
